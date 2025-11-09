@@ -43,30 +43,30 @@ public class FormMonitorService
         var pdfLinks = _webPdfGetter.GetPdfLinks();
         _logger.LogInformation("Found {Count} PDF links", pdfLinks.Count());
 
-        foreach (var link in pdfLinks)
+        foreach (var pdfLinkInfo in pdfLinks)
         {
             try
             {
-                await ProcessFormAsync(link);
+                await ProcessFormAsync(pdfLinkInfo);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing form: {Link}", link);
+                _logger.LogError(ex, "Error processing form: {FileName}", pdfLinkInfo.FileName);
             }
         }
 
         _logger.LogInformation("USCIS form monitoring completed");
     }
 
-    private async Task ProcessFormAsync(string link)
+    private async Task ProcessFormAsync(PdfLinkInfo pdfLinkInfo)
     {
-        _logger.LogInformation("Processing form: {Link}", link);
+        _logger.LogInformation("Processing form: {FileName}", pdfLinkInfo.FileName);
 
         // Download PDF
-        using var response = await _httpClient.GetAsync(link);
+        using var response = await _httpClient.GetAsync(pdfLinkInfo.FullLink);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning("Failed to download PDF from {Link}: {StatusCode}", link, response.StatusCode);
+            _logger.LogWarning("Failed to download PDF from {Link}: {StatusCode}", pdfLinkInfo.FullLink, response.StatusCode);
             return;
         }
 
@@ -78,19 +78,20 @@ public class FormMonitorService
         // Compute hash
         var hash = _hasher.ComputeHash(text);
 
-        // Extract form name from link
-        var formName = ExtractFormName(link);
+        // Extract form name from filename
+        var formName = ExtractFormName(pdfLinkInfo.FileName);
 
         // Check if we've seen this form before
-        var existingRecord = await _repository.GetFormRecordByLinkAsync(link);
+        var existingRecord = await _repository.GetFormRecordByLinkAsync(pdfLinkInfo.FileName);
 
         if (existingRecord == null)
         {
             // First time seeing this form - just store it
-            _logger.LogInformation("New form discovered: {FormName} ({Link})", formName, link);
+            _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, pdfLinkInfo.FileName);
             await _repository.AddFormRecordAsync(new PdfFormRecord
             {
-                Link = link,
+                FileName = pdfLinkInfo.FileName,
+                FullLink = pdfLinkInfo.FullLink,
                 FormName = formName,
                 Hash = hash,
                 LastChecked = DateTime.UtcNow
@@ -99,7 +100,7 @@ public class FormMonitorService
         else if (existingRecord.Hash != hash)
         {
             // Hash changed - form was updated!
-            _logger.LogWarning("Form changed detected: {FormName} ({Link})", formName, link);
+            _logger.LogWarning("Form changed detected: {FormName} ({FileName})", formName, pdfLinkInfo.FileName);
 
             // Re-download and extract text from old version (if we stored it)
             // For now, we'll just use the diff with empty old text
@@ -109,7 +110,8 @@ public class FormMonitorService
 
             var change = new PdfFormChange
             {
-                Link = link,
+                FileName = pdfLinkInfo.FileName,
+                FullLink = pdfLinkInfo.FullLink,
                 FormName = formName,
                 OldHash = existingRecord.Hash,
                 NewHash = hash,
@@ -139,12 +141,10 @@ public class FormMonitorService
         }
     }
 
-    private string ExtractFormName(string link)
+    private string ExtractFormName(string fileName)
     {
-        // Extract form name from URL
-        // e.g., https://www.uscis.gov/sites/default/files/document/forms/i-485.pdf -> i-485
-        var parts = link.Split('/');
-        var fileName = parts[^1]; // Last part
+        // Extract form name from filename
+        // e.g., i-485.pdf -> i-485
         var formName = Path.GetFileNameWithoutExtension(fileName);
         return formName;
     }

@@ -1,6 +1,8 @@
+using USCISFormTracker.Core.Models;
+
 namespace USCISFormTracker.Core;
 
 public interface IWebPdfGetter
 {
-  IEnumerable<string> GetPdfLinks();
+  IEnumerable<PdfLinkInfo> GetPdfLinks();
 }

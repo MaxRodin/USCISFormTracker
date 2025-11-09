@@ -81,7 +81,7 @@ public class EmailService : IEmailService
         var sb = new StringBuilder();
         sb.AppendLine("<html><body>");
         sb.AppendLine($"<h2>USCIS Form Change Detected: {change.FormName}</h2>");
-        sb.AppendLine($"<p><strong>Form Link:</strong> <a href=\"{change.Link}\">{change.Link}</a></p>");
+        sb.AppendLine($"<p><strong>Form Link:</strong> <a href=\"{change.FullLink}\">{change.FullLink}</a></p>");
         sb.AppendLine($"<p><strong>Detected:</strong> {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC</p>");
         sb.AppendLine($"<p><strong>Old Hash:</strong> {change.OldHash}</p>");
         sb.AppendLine($"<p><strong>New Hash:</strong> {change.NewHash}</p>");
@@ -127,7 +127,7 @@ public class EmailService : IEmailService
     {
         var sb = new StringBuilder();
         sb.AppendLine($"USCIS Form Change Detected: {change.FormName}");
-        sb.AppendLine($"Form Link: {change.Link}");
+        sb.AppendLine($"Form Link: {change.FullLink}");
         sb.AppendLine($"Detected: {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC");
         sb.AppendLine($"Old Hash: {change.OldHash}");
         sb.AppendLine($"New Hash: {change.NewHash}");
@@ -171,7 +171,7 @@ public class EmailService : IEmailService
         var sb = new StringBuilder();
         sb.AppendLine("<html><body>");
         sb.AppendLine($"<h2>New USCIS Form Added: {newForm.FormName}</h2>");
-        sb.AppendLine($"<p><strong>Form Link:</strong> <a href=\"{newForm.Link}\">{newForm.Link}</a></p>");
+        sb.AppendLine($"<p><strong>Form Link:</strong> <a href=\"{newForm.FullLink}\">{newForm.FullLink}</a></p>");
         sb.AppendLine($"<p><strong>Discovered:</strong> {newForm.LastChecked:yyyy-MM-dd HH:mm:ss} UTC</p>");
         sb.AppendLine($"<p><strong>Hash:</strong> {newForm.Hash}</p>");
         sb.AppendLine("<p>This form has been added to the monitoring system.</p>");
@@ -183,7 +183,7 @@ public class EmailService : IEmailService
     {
         var sb = new StringBuilder();
         sb.AppendLine($"New USCIS Form Added: {newForm.FormName}");
-        sb.AppendLine($"Form Link: {newForm.Link}");
+        sb.AppendLine($"Form Link: {newForm.FullLink}");
         sb.AppendLine($"Discovered: {newForm.LastChecked:yyyy-MM-dd HH:mm:ss} UTC");
         sb.AppendLine($"Hash: {newForm.Hash}");
         sb.AppendLine();

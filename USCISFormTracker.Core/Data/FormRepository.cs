@@ -12,10 +12,10 @@ public class FormRepository : IFormRepository
         _context = context;
     }
 
-    public async Task<PdfFormRecord?> GetFormRecordByLinkAsync(string link)
+    public async Task<PdfFormRecord?> GetFormRecordByLinkAsync(string fileName)
     {
         return await _context.FormRecords
-            .FirstOrDefaultAsync(f => f.Link == link);
+            .FirstOrDefaultAsync(f => f.FileName == fileName);
     }
 
     public async Task<List<PdfFormRecord>> GetAllFormRecordsAsync()

@@ -18,7 +18,9 @@ public class FormTrackerDbContext : DbContext
         modelBuilder.Entity<PdfFormRecord>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Link).IsUnique();
+            entity.HasIndex(e => e.FileName).IsUnique();
+            entity.Property(e => e.FileName).IsRequired();
+            entity.Property(e => e.FullLink).IsRequired();
             entity.Property(e => e.FormName).IsRequired();
             entity.Property(e => e.Hash).IsRequired();
             entity.Property(e => e.LastChecked).IsRequired();
@@ -27,7 +29,8 @@ public class FormTrackerDbContext : DbContext
         modelBuilder.Entity<PdfFormChange>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Link).IsRequired();
+            entity.Property(e => e.FileName).IsRequired();
+            entity.Property(e => e.FullLink).IsRequired();
             entity.Property(e => e.FormName).IsRequired();
             entity.Property(e => e.OldHash).IsRequired();
             entity.Property(e => e.NewHash).IsRequired();
