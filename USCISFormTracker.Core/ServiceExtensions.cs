@@ -36,7 +36,7 @@ public static class ServiceExtensions
 
         // Core services
         services.AddScoped<IHasher, Sha256Hasher>();
-        services.AddScoped<IPdfReader, ImprovedPdfPigReader>();
+        services.AddScoped<IPdfReader, PdfPigLayoutPdfReader>(); // Using PdfPig's RecursiveXYCut algorithm
         services.AddScoped<IDiffer, DiffPlexDiffer>();
 
         // Web PDF Getter

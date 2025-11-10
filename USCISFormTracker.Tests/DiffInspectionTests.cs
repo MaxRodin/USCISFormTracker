@@ -20,7 +20,7 @@ public class DiffInspectionTests
     public void InspectDiffLines_BetweenTwoPdfVersions()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var differ = new DiffPlexDiffer();
         var firstPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
         var secondPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_Second.pdf");
@@ -92,7 +92,7 @@ public class DiffInspectionTests
     public void InspectPdfText_FirstVersion()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var pdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
 
         // Act
@@ -114,7 +114,7 @@ public class DiffInspectionTests
     public void InspectPdfText_SecondVersion()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var pdfBytes = TestDataLoader.LoadPdfFile("PdfTest_Second.pdf");
 
         // Act

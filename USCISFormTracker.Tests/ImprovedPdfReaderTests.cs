@@ -40,14 +40,14 @@ public class ImprovedPdfReaderTests
         _output.WriteLine($"Lines: {newText.Split('\n').Length}");
 
         _output.WriteLine("\n=== IMPROVEMENTS ===");
-        _output.WriteLine($"✓ Headers/footers removed");
+        _output.WriteLine($"✓ Footers removed");
         _output.WriteLine($"✓ Proper line breaks preserved");
-        _output.WriteLine($"✓ Content-only extraction");
+        _output.WriteLine($"✓ Cleaner text extraction");
 
         // Assert
         Assert.NotEmpty(newText);
-        Assert.DoesNotContain("OriginalHeader", newText);
-        Assert.DoesNotContain("10/11/2025", newText);
+        Assert.Contains("OriginalHeader", newText); // Headers are kept now
+        Assert.DoesNotContain("10/11/2025", newText); // Footers still removed
         Assert.Contains("This line is static.", newText);
     }
 
@@ -75,8 +75,8 @@ public class ImprovedPdfReaderTests
 
         // Assert
         Assert.NotEmpty(newText);
-        Assert.DoesNotContain("ModifiedHeader", newText);
-        Assert.DoesNotContain("11/30/2025", newText);
+        Assert.Contains("ModifiedHeader", newText); // Headers are kept now
+        Assert.DoesNotContain("11/30/2025", newText); // Footers still removed
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public class ImprovedPdfReaderTests
         Assert.True(diffLines.AddedLines.Count + diffLines.DeletedLines.Count > 0,
             "Should detect differences");
 
-        // Should not have header/footer noise in the diff
-        Assert.DoesNotContain(diffLines.AddedLines, line => line.Contains("ModifiedHeader"));
-        Assert.DoesNotContain(diffLines.DeletedLines, line => line.Contains("OriginalHeader"));
+        // Headers are now included in the output, so they will appear in diffs
+        Assert.Contains(diffLines.AddedLines, line => line.Contains("ModifiedHeader"));
+        Assert.Contains(diffLines.DeletedLines, line => line.Contains("OriginalHeader"));
     }
 }

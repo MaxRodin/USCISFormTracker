@@ -13,7 +13,7 @@ public class FormChangeDetectionTests
     public void PdfReader_ShouldExtractTextFromPdf()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var pdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
 
         // Act
@@ -30,7 +30,7 @@ public class FormChangeDetectionTests
     {
         // Arrange
         var hasher = new Sha256Hasher();
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var pdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
 
         // Act
@@ -52,7 +52,7 @@ public class FormChangeDetectionTests
     {
         // Arrange
         var hasher = new Sha256Hasher();
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var firstPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
         var secondPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_Second.pdf");
 
@@ -75,7 +75,7 @@ public class FormChangeDetectionTests
     public void Differ_ShouldDetectChanges_BetweenTwoPdfVersions()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var differ = new DiffPlexDiffer();
         var firstPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
         var secondPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_Second.pdf");
@@ -99,7 +99,7 @@ public class FormChangeDetectionTests
     public void Differ_ShouldProvideDetailedDiffLines_ForInspection()
     {
         // Arrange
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var differ = new DiffPlexDiffer();
         var firstPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_First.pdf");
         var secondPdfBytes = TestDataLoader.LoadPdfFile("PdfTest_Second.pdf");
@@ -156,7 +156,7 @@ public class FormChangeDetectionTests
         // Arrange
         var mockHandler = new MockHttpMessageHandler();
         var hasher = new Sha256Hasher();
-        var pdfReader = new ImprovedPdfPigReader();
+        var pdfReader = new PdfPigLayoutPdfReader();
         var differ = new DiffPlexDiffer();
 
         // Load test PDFs
