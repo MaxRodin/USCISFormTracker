@@ -11,9 +11,9 @@ USCIS Form Change Tracker - monitors USCIS immigration forms for changes by comp
 **Interface-based design** with the following key components:
 
 - **IHasher** (Sha256Hasher): Computes SHA256 hashes of PDF text content
-- **IPdfReader** (PdfPigReader): Extracts text from PDF files using PdfPig library
-- **IDiffer**: Generates line-by-line diffs between old and new PDF text
-- **IWebPdfGetter**: Scrapes USCIS website to discover PDF form links
+- **IPdfReader** (ImprovedPdfPigReader): Extracts text from PDF files using PdfPig library with intelligent header/footer filtering and line break preservation
+- **IDiffer** (DiffPlexDiffer): Generates line-by-line diffs between old and new PDF text using DiffPlex library (Myers' diff algorithm)
+- **IWebPdfGetter** (UscisWebPdfGetter): Scrapes USCIS website to discover PDF form links
 - **IEmailService/IEmailSender**: Sends change notifications via Mailgun
 - **Repository layer**: Manages persistence to SQLite database using Entity Framework Core
 
@@ -85,6 +85,67 @@ dotnet test
 ```
 
 **Execution model:** Console application designed to be scheduled externally (cron/Task Scheduler), not a continuously running service.
+
+## Testing
+
+The test project (`USCISFormTracker.Tests`) uses xUnit and Moq with organized test data:
+
+**Test Structure:**
+```
+USCISFormTracker.Tests/
+├── TestData/
+│   ├── Html/           # HTML fixtures for web scraping tests
+│   │   ├── all-forms-snippet.html
+│   │   ├── i-694-detail-example.html
+│   │   └── i-751-detail.html
+│   └── Pdf/            # PDF fixtures for diff testing
+│       ├── PdfTest_First.pdf
+│       └── PdfTest_Second.pdf
+├── TestHelpers/
+│   ├── MockHttpMessageHandler.cs  # Mock HTTP responses
+│   └── TestDataLoader.cs          # Load test fixtures
+├── UscisWebPdfGetterTests.cs      # Web scraping tests
+├── FormChangeDetectionTests.cs    # End-to-end workflow tests
+└── DiffInspectionTests.cs         # Detailed diff output inspection
+```
+
+**Key Test Scenarios:**
+- All-forms page scraping and form detail link extraction
+- Detail page navigation and PDF link extraction
+- PDF text extraction and hash computation
+- Change detection between PDF versions
+- DiffLines generation using DiffPlex
+- Full monitoring workflow simulation with mock HTTP
+- PDF structure analysis and extraction quality tests
+
+## PDF Text Extraction
+
+The `ImprovedPdfPigReader` addresses common PDF extraction issues:
+
+**Problems with basic `page.Text` extraction:**
+1. Headers/footers mixed into content (e.g., "OriginalHeader", date stamps)
+2. Sentences on different Y positions concatenated with spaces instead of line breaks
+3. No semantic understanding of document structure
+
+**ImprovedPdfPigReader solution:**
+1. **Header/Footer Filtering**: Uses absolute Y-position thresholds based on page dimensions
+   - Headers: Top 50 points (~0.7 inches from top)
+   - Footers: Bottom 80 points (~1.1 inches from bottom)
+2. **Line Break Preservation**: Groups words by Y position (within 3-point tolerance) to maintain original line structure
+3. **Content-only extraction**: Filters out peripheral text, focusing on document body
+
+**Example transformation:**
+```
+Before (PdfPigReader):
+OriginalHeader    10/11/2025    This line is static. This line will change. We are going to delete this line.
+
+After (ImprovedPdfPigReader):
+This line is static.
+This line will change.
+We are going to delete this line.
+```
+
+This produces cleaner diffs with better semantic meaning.
 
 ## Configuration
 

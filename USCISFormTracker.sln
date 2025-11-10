@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Core", "US
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.ConsoleApp", "USCISFormTracker.ConsoleApp\USCISFormTracker.ConsoleApp.csproj", "{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

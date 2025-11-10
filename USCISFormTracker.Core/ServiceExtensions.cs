@@ -36,8 +36,8 @@ public static class ServiceExtensions
 
         // Core services
         services.AddScoped<IHasher, Sha256Hasher>();
-        services.AddScoped<IPdfReader, PdfPigReader>();
-        services.AddScoped<IDiffer, TextDiffer>();
+        services.AddScoped<IPdfReader, ImprovedPdfPigReader>();
+        services.AddScoped<IDiffer, DiffPlexDiffer>();
 
         // Web PDF Getter
         services.AddScoped<IWebPdfGetter>(sp =>
