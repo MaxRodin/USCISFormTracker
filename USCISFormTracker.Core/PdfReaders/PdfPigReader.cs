@@ -1,7 +1,7 @@
 using System.Text;
 using UglyToad.PdfPig;
 
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Core.PdfReaders;
 
 public class PdfPigReader : IPdfReader
 {

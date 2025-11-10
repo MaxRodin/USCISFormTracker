@@ -1,5 +1,6 @@
 using USCISFormTracker.Core;
 using USCISFormTracker.Core.Models;
+using USCISFormTracker.Core.PdfReaders;
 using USCISFormTracker.Tests.TestHelpers;
 
 namespace USCISFormTracker.Tests;

@@ -2,7 +2,7 @@ using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Core.PdfReaders;
 
 /// <summary>
 /// Improved PDF text extraction that:

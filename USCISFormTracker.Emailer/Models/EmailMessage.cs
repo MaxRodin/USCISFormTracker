@@ -1,4 +1,4 @@
-namespace USCISFormTracker.Core.Models;
+namespace USCISFormTracker.Emailer.Models;
 
 public class EmailMessage
 {

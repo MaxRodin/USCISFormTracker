@@ -1,8 +1,8 @@
 using RestSharp;
 using RestSharp.Authenticators;
-using USCISFormTracker.Core.Models;
+using USCISFormTracker.Emailer.Models;
 
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Emailer;
 
 public class MailgunEmailSender : IEmailSender
 {

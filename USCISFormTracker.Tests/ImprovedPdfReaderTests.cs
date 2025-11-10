@@ -1,4 +1,5 @@
 using USCISFormTracker.Core;
+using USCISFormTracker.Core.PdfReaders;
 using USCISFormTracker.Tests.TestHelpers;
 using Xunit.Abstractions;
 

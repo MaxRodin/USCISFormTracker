@@ -6,7 +6,7 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.PageSegmenter;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.ReadingOrderDetector;
 
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Core.PdfReaders;
 
 /// <summary>
 /// PDF text extraction using PdfPig's rendering order.

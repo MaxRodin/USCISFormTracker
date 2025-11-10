@@ -1,7 +1,10 @@
 using System.Text.Json;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using USCISFormTracker.Core.Data;
 using USCISFormTracker.Core.Models;
+using USCISFormTracker.Core.PdfReaders;
+using USCISFormTracker.Dto;
 
 namespace USCISFormTracker.Core;
 
@@ -12,7 +15,7 @@ public class FormMonitorService
     private readonly IHasher _hasher;
     private readonly IDiffer _differ;
     private readonly IFormRepository _repository;
-    private readonly IEmailService _emailService;
+    private readonly IPublishEndpoint _publishEndpoint;
     private readonly HttpClient _httpClient;
     private readonly ILogger<FormMonitorService> _logger;
 
@@ -22,7 +25,7 @@ public class FormMonitorService
         IHasher hasher,
         IDiffer differ,
         IFormRepository repository,
-        IEmailService emailService,
+        IPublishEndpoint publishEndpoint,
         HttpClient httpClient,
         ILogger<FormMonitorService> logger)
     {
@@ -31,7 +34,7 @@ public class FormMonitorService
         _hasher = hasher;
         _differ = differ;
         _repository = repository;
-        _emailService = emailService;
+        _publishEndpoint = publishEndpoint;
         _httpClient = httpClient;
         _logger = logger;
     }
@@ -88,13 +91,24 @@ public class FormMonitorService
         {
             // First time seeing this form - just store it
             _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, pdfLinkInfo.FileName);
-            await _repository.AddFormRecordAsync(new PdfFormRecord
+            var newRecord = new PdfFormRecord
             {
                 FileName = pdfLinkInfo.FileName,
                 FullLink = pdfLinkInfo.FullLink,
                 FormName = formName,
                 Hash = hash,
                 LastChecked = DateTime.UtcNow
+            };
+            await _repository.AddFormRecordAsync(newRecord);
+
+            // Publish FormAddedMessage
+            await _publishEndpoint.Publish(new FormAddedMessage
+            {
+                FileName = pdfLinkInfo.FileName,
+                FullLink = pdfLinkInfo.FullLink,
+                FormName = formName,
+                Hash = hash,
+                DiscoveredTime = DateTime.UtcNow
             });
         }
         else if (existingRecord.Hash != hash)
@@ -122,15 +136,26 @@ public class FormMonitorService
             // Save change to database
             await _repository.AddFormChangeAsync(change);
 
-            // Send email notification
-            await _emailService.SendChangeNotificationAsync(change, diffLines);
+            // Publish FormChangeDetectedMessage
+            await _publishEndpoint.Publish(new FormChangeDetectedMessage
+            {
+                FileName = pdfLinkInfo.FileName,
+                FullLink = pdfLinkInfo.FullLink,
+                FormName = formName,
+                OldHash = existingRecord.Hash,
+                NewHash = hash,
+                DetectedChangeTime = DateTime.UtcNow,
+                AddedLines = diffLines.AddedLines,
+                DeletedLines = diffLines.DeletedLines,
+                ModifiedLines = diffLines.ModifiedLines
+            });
 
             // Update the stored record
             existingRecord.Hash = hash;
             existingRecord.LastChecked = DateTime.UtcNow;
             await _repository.UpdateFormRecordAsync(existingRecord);
 
-            _logger.LogInformation("Change notification sent for {FormName}", formName);
+            _logger.LogInformation("Change notification message published for {FormName}", formName);
         }
         else
         {

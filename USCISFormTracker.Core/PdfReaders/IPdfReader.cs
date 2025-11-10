@@ -1,4 +1,4 @@
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Core.PdfReaders;
 
 public interface IPdfReader
 {

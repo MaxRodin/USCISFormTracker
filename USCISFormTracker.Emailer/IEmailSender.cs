@@ -1,6 +1,6 @@
-using USCISFormTracker.Core.Models;
+using USCISFormTracker.Emailer.Models;
 
-namespace USCISFormTracker.Core;
+namespace USCISFormTracker.Emailer;
 
 public interface IEmailSender
 {
