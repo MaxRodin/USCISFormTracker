@@ -16,8 +16,9 @@ builder.Services.AddSingleton<IEmailSender>(sp =>
         ?? throw new InvalidOperationException("Mailgun:FromEmail not configured");
     var fromName = configuration["Mailgun:FromName"]
         ?? throw new InvalidOperationException("Mailgun:FromName not configured");
+    var mailingListAddress = configuration["Mailgun:MailingListAddress"]; // Optional
 
-    return new MailgunEmailSender(apiKey, domain, fromEmail, fromName);
+    return new MailgunEmailSender(apiKey, domain, fromEmail, fromName, mailingListAddress);
 });
 
 // Configure MassTransit with RabbitMQ

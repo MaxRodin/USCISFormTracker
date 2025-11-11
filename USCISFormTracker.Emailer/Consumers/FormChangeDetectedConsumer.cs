@@ -26,8 +26,8 @@ public class FormChangeDetectedConsumer : IConsumer<FormChangeDetectedMessage>
         var message = context.Message;
         _logger.LogInformation("Processing form change detected for {FormName}", message.FormName);
 
-        var toEmails = _configuration.GetSection("EmailNotifications:ToEmails").Get<List<string>>()
-            ?? throw new InvalidOperationException("EmailNotifications:ToEmails not configured");
+        var mailingListAddress = _configuration["Mailgun:MailingListAddress"]
+            ?? throw new InvalidOperationException("Mailgun:MailingListAddress not configured");
 
         var subject = $"USCIS Form Change: {message.FormName}";
 
@@ -43,19 +43,16 @@ public class FormChangeDetectedConsumer : IConsumer<FormChangeDetectedMessage>
         var htmlBody = BuildChangeEmailHtml(message, limitedAdded, limitedDeleted, limitedModified, totalShown, totalChanges);
         var textBody = BuildChangeEmailText(message, limitedAdded, limitedDeleted, limitedModified, totalShown, totalChanges);
 
-        foreach (var toEmail in toEmails)
+        var emailMessage = new EmailMessage
         {
-            var emailMessage = new EmailMessage
-            {
-                To = toEmail,
-                Subject = subject,
-                HtmlBody = htmlBody,
-                TextBody = textBody
-            };
+            To = mailingListAddress,
+            Subject = subject,
+            HtmlBody = htmlBody,
+            TextBody = textBody
+        };
 
-            await _emailSender.SendEmailAsync(emailMessage);
-            _logger.LogInformation("Change notification email sent to {Email} for {FormName}", toEmail, message.FormName);
-        }
+        await _emailSender.SendEmailAsync(emailMessage);
+        _logger.LogInformation("Change notification email sent to mailing list for {FormName}", message.FormName);
     }
 
     private string BuildChangeEmailHtml(

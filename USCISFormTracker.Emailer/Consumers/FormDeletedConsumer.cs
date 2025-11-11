@@ -26,26 +26,23 @@ public class FormDeletedConsumer : IConsumer<FormDeletedMessage>
         var message = context.Message;
         _logger.LogInformation("Processing form deleted notification for {FormName}", message.FormName);
 
-        var toEmails = _configuration.GetSection("EmailNotifications:ToEmails").Get<List<string>>()
-            ?? throw new InvalidOperationException("EmailNotifications:ToEmails not configured");
+        var mailingListAddress = _configuration["Mailgun:MailingListAddress"]
+            ?? throw new InvalidOperationException("Mailgun:MailingListAddress not configured");
 
         var subject = $"USCIS Form Removed: {message.FormName}";
         var htmlBody = BuildDeletedFormEmailHtml(message);
         var textBody = BuildDeletedFormEmailText(message);
 
-        foreach (var toEmail in toEmails)
+        var emailMessage = new EmailMessage
         {
-            var emailMessage = new EmailMessage
-            {
-                To = toEmail,
-                Subject = subject,
-                HtmlBody = htmlBody,
-                TextBody = textBody
-            };
+            To = mailingListAddress,
+            Subject = subject,
+            HtmlBody = htmlBody,
+            TextBody = textBody
+        };
 
-            await _emailSender.SendEmailAsync(emailMessage);
-            _logger.LogInformation("Form deleted notification email sent to {Email} for {FormName}", toEmail, message.FormName);
-        }
+        await _emailSender.SendEmailAsync(emailMessage);
+        _logger.LogInformation("Form deleted notification email sent to mailing list for {FormName}", message.FormName);
     }
 
     private string BuildDeletedFormEmailHtml(FormDeletedMessage message)

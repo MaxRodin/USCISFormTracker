@@ -26,26 +26,23 @@ public class FormAddedConsumer : IConsumer<FormAddedMessage>
         var message = context.Message;
         _logger.LogInformation("Processing form added notification for {FormName}", message.FormName);
 
-        var toEmails = _configuration.GetSection("EmailNotifications:ToEmails").Get<List<string>>()
-            ?? throw new InvalidOperationException("EmailNotifications:ToEmails not configured");
+        var mailingListAddress = _configuration["Mailgun:MailingListAddress"]
+            ?? throw new InvalidOperationException("Mailgun:MailingListAddress not configured");
 
         var subject = $"New USCIS Form Added: {message.FormName}";
         var htmlBody = BuildAddedFormEmailHtml(message);
         var textBody = BuildAddedFormEmailText(message);
 
-        foreach (var toEmail in toEmails)
+        var emailMessage = new EmailMessage
         {
-            var emailMessage = new EmailMessage
-            {
-                To = toEmail,
-                Subject = subject,
-                HtmlBody = htmlBody,
-                TextBody = textBody
-            };
+            To = mailingListAddress,
+            Subject = subject,
+            HtmlBody = htmlBody,
+            TextBody = textBody
+        };
 
-            await _emailSender.SendEmailAsync(emailMessage);
-            _logger.LogInformation("Form added notification email sent to {Email} for {FormName}", toEmail, message.FormName);
-        }
+        await _emailSender.SendEmailAsync(emailMessage);
+        _logger.LogInformation("Form added notification email sent to mailing list for {FormName}", message.FormName);
     }
 
     private string BuildAddedFormEmailHtml(FormAddedMessage newForm)
