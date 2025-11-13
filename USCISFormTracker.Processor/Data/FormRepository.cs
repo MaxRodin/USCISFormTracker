@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using USCISFormTracker.Core.Models;
+using USCISFormTracker.Processor.Models;
 
-namespace USCISFormTracker.Core.Data;
+namespace USCISFormTracker.Processor.Data;
 
 public class FormRepository : IFormRepository
 {

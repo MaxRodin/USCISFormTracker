@@ -1,40 +1,20 @@
-using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Configuration;
-using USCISFormTracker.Core.Data;
 using USCISFormTracker.Core.PdfReaders;
 
 namespace USCISFormTracker.Core;
 
+/// <summary>
+/// Core services - pure business logic, no database or messaging dependencies
+/// </summary>
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddFormTrackerServices(
+    public static IServiceCollection AddFormTrackerCoreServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Configuration
-        services.AddSingleton(configuration);
-
-        // Logging
-        services.AddLogging(builder =>
-        {
-            builder.AddConsole();
-            builder.AddConfiguration(configuration.GetSection("Logging"));
-        });
-
-        // Database
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<FormTrackerDbContext>(options =>
-            options.UseSqlite(connectionString));
-
         // HttpClient
         services.AddHttpClient();
-
-        // Repository
-        services.AddScoped<IFormRepository, FormRepository>();
 
         // Core services
         services.AddScoped<IHasher, Sha256Hasher>();
@@ -50,8 +30,8 @@ public static class ServiceExtensions
             return new UscisWebPdfGetter(httpClient, formsPageUrl);
         });
 
-        // Main service
-        services.AddScoped<FormMonitorService>();
+        // Form comparison service (pure logic)
+        services.AddScoped<IFormComparisonService, FormComparisonService>();
 
         return services;
     }

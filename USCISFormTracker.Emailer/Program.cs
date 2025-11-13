@@ -28,6 +28,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<FormChangeDetectedConsumer>();
     x.AddConsumer<FormAddedConsumer>();
     x.AddConsumer<FormDeletedConsumer>();
+    x.AddConsumer<RunSummaryConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

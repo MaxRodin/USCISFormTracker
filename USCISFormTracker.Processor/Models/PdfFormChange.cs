@@ -1,4 +1,4 @@
-namespace USCISFormTracker.Core.Models;
+namespace USCISFormTracker.Processor.Models;
 
 public class PdfFormChange
 {

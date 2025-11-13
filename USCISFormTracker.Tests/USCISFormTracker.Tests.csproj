@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
+    <ProjectReference Include="..\USCISFormTracker.Processor\USCISFormTracker.Processor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

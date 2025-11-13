@@ -1,0 +1,119 @@
+services:
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: uscisft-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - uscis-network
+
+  # Processor Service (Form Monitoring Worker)
+  processor:
+    build:
+      context: .
+      dockerfile: USCISFormTracker.Processor/Dockerfile
+    container_name: uscisft-processor
+    environment:
+      # Database (external PostgreSQL)
+      DATABASE_HOST: ${DATABASE_HOST:-192.168.1.8}
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      # RabbitMQ
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
+      # USCIS Config
+      UscisConfig__FormsPageUrl: ${USCIS_FORMS_PAGE_URL:-https://www.uscis.gov/forms/all-forms}
+      # Quartz Schedule (run every day at 2:00 AM)
+      Quartz__CronSchedule: ${QUARTZ_CRON_SCHEDULE:-0 0 2 * * ?}
+      # Logging
+      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - forms_data:/app/forms
+    restart: unless-stopped
+    networks:
+      - uscis-network
+
+  # Emailer Service (Email Consumer)
+  emailer:
+    build:
+      context: .
+      dockerfile: USCISFormTracker.Emailer/Dockerfile
+    container_name: uscisft-emailer
+    environment:
+      # RabbitMQ
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
+      # Mailgun
+      Mailgun__ApiKey: ${MAILGUN_API_KEY:?MAILGUN_API_KEY is required}
+      Mailgun__Domain: ${MAILGUN_DOMAIN:?MAILGUN_DOMAIN is required}
+      Mailgun__FromEmail: ${MAILGUN_FROM_EMAIL:?MAILGUN_FROM_EMAIL is required}
+      Mailgun__FromName: ${MAILGUN_FROM_NAME:-USCIS Form Tracker}
+      Mailgun__MailingListAddress: ${MAILGUN_MAILING_LIST_ADDRESS:?MAILGUN_MAILING_LIST_ADDRESS is required}
+      # Logging
+      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - uscis-network
+
+  # API Service (Optional - REST API)
+  api:
+    build:
+      context: .
+      dockerfile: USCISFormTracker.Api/Dockerfile
+    container_name: uscisft-api
+    environment:
+      # Database (external PostgreSQL)
+      DATABASE_HOST: ${DATABASE_HOST:-192.168.1.8}
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      # RabbitMQ
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
+      # ASP.NET Core
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      # Logging
+      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - uscis-network
+
+volumes:
+  rabbitmq_data:
+    driver: local
+  forms_data:
+    driver: local
+
+networks:
+  uscis-network:
+    driver: bridge

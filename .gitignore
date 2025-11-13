@@ -101,3 +101,6 @@ forms/
 appsettings.Development.json
 appsettings.*.json
 !appsettings.json
+
+# Environment variables (contains database credentials)
+.env

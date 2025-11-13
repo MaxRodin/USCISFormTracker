@@ -1,0 +1,63 @@
+# Build output
+**/bin/
+**/obj/
+**/out/
+
+# NuGet packages
+*.nupkg
+**/packages/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Rider
+.idea/
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+docker-compose*.yml
+**/Dockerfile
+**/.dockerignore
+
+# Environment and secrets
+.env
+.env.*
+appsettings.Development.json
+
+# PDFs and forms
+forms/
+*.pdf
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# OS files
+.DS_Store
+Thumbs.db

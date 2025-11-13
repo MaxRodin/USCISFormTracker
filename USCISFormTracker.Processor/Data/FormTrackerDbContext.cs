@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using USCISFormTracker.Core.Models;
+using USCISFormTracker.Processor.Models;
 
-namespace USCISFormTracker.Core.Data;
+namespace USCISFormTracker.Processor.Data;
 
 public class FormTrackerDbContext : DbContext
 {
@@ -23,6 +23,7 @@ public class FormTrackerDbContext : DbContext
             entity.Property(e => e.FullLink).IsRequired();
             entity.Property(e => e.FormName).IsRequired();
             entity.Property(e => e.Hash).IsRequired();
+            entity.Property(e => e.ExtractedText).IsRequired();
             entity.Property(e => e.LastChecked).IsRequired();
         });
 

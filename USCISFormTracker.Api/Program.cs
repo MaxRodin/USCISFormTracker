@@ -1,7 +1,11 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using USCISFormTracker.Core.Data;
+using USCISFormTracker.Processor.Data;
 using USCISFormTracker.Dto;
+using DotNetEnv;
+
+// Load environment variables from .env file
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +14,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var dbHost = builder.Configuration["DATABASE_HOST"] ?? throw new InvalidOperationException("DATABASE_HOST not configured");
+var dbPort = builder.Configuration["DATABASE_PORT"] ?? "5432";
+var dbName = builder.Configuration["DATABASE_NAME"] ?? throw new InvalidOperationException("DATABASE_NAME not configured");
+var dbUser = builder.Configuration["DATABASE_USER"] ?? throw new InvalidOperationException("DATABASE_USER not configured");
+var dbPassword = builder.Configuration["DATABASE_PASSWORD"] ?? throw new InvalidOperationException("DATABASE_PASSWORD not configured");
+
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
+
 builder.Services.AddDbContext<FormTrackerDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseNpgsql(connectionString));
 
 // Repository
 builder.Services.AddScoped<IFormRepository, FormRepository>();
