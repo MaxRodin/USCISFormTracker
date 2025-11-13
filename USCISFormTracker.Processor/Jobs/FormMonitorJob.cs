@@ -76,15 +76,8 @@ public class FormMonitorJob : IJob
             // Update database with results
             await UpdateDatabaseAsync(repository, summary);
 
-            // Publish messages based on first run or not
-            if (isFirstRun && summary.AddedForms.Count > 0)
-            {
-                await PublishAggregateSummaryAsync(publishEndpoint, summary);
-            }
-            else
-            {
-                await PublishIndividualMessagesAsync(publishEndpoint, summary);
-            }
+            // Always publish aggregate summary (whether first run or not)
+            await PublishAggregateSummaryAsync(publishEndpoint, summary, isFirstRun);
 
             _logger.LogInformation("Form monitoring completed successfully at {Timestamp} UTC", DateTime.UtcNow);
         }
@@ -148,7 +141,7 @@ public class FormMonitorJob : IJob
         }
     }
 
-    private async Task PublishAggregateSummaryAsync(IPublishEndpoint publishEndpoint, FormRunSummary summary)
+    private async Task PublishAggregateSummaryAsync(IPublishEndpoint publishEndpoint, FormRunSummary summary, bool isFirstRun)
     {
         _logger.LogInformation(
             "Publishing aggregate summary: {NewCount} new, {ChangedCount} changed, {DeletedCount} deleted",
@@ -159,7 +152,7 @@ public class FormMonitorJob : IJob
         var message = new RunSummaryMessage
         {
             RunTime = summary.RunTime,
-            IsFirstRun = true,
+            IsFirstRun = isFirstRun,
             TotalFormsOnWebsite = summary.TotalFormsOnWebsite,
             NewFormsCount = summary.AddedForms.Count,
             ChangedFormsCount = summary.ChangedForms.Count,
@@ -174,7 +167,10 @@ public class FormMonitorJob : IJob
             {
                 FileName = f.FileName,
                 FormName = f.FormName,
-                FullLink = f.FullLink
+                FullLink = f.FullLink,
+                AddedLines = f.Diff.AddedLines,
+                DeletedLines = f.Diff.DeletedLines,
+                ModifiedLines = f.Diff.ModifiedLines
             }).ToList(),
             DeletedForms = summary.DeletedForms.Select(f => new FormSummaryItem
             {
@@ -186,52 +182,5 @@ public class FormMonitorJob : IJob
 
         await publishEndpoint.Publish(message);
         _logger.LogInformation("Aggregate summary message published");
-    }
-
-    private async Task PublishIndividualMessagesAsync(IPublishEndpoint publishEndpoint, FormRunSummary summary)
-    {
-        // Publish FormAddedMessage for new forms
-        foreach (var addedForm in summary.AddedForms)
-        {
-            await publishEndpoint.Publish(new FormAddedMessage
-            {
-                FileName = addedForm.FileName,
-                FullLink = addedForm.FullLink,
-                FormName = addedForm.FormName,
-                Hash = addedForm.Hash,
-                DiscoveredTime = summary.RunTime
-            });
-            _logger.LogInformation("Published FormAddedMessage for {FormName}", addedForm.FormName);
-        }
-
-        // Publish FormChangeDetectedMessage for changed forms
-        foreach (var changedForm in summary.ChangedForms)
-        {
-            await publishEndpoint.Publish(new FormChangeDetectedMessage
-            {
-                FileName = changedForm.FileName,
-                FullLink = changedForm.FullLink,
-                FormName = changedForm.FormName,
-                OldHash = changedForm.OldHash,
-                NewHash = changedForm.NewHash,
-                DetectedChangeTime = summary.RunTime,
-                AddedLines = changedForm.Diff.AddedLines,
-                DeletedLines = changedForm.Diff.DeletedLines,
-                ModifiedLines = changedForm.Diff.ModifiedLines
-            });
-            _logger.LogInformation("Published FormChangeDetectedMessage for {FormName}", changedForm.FormName);
-        }
-
-        // Publish FormDeletedMessage for deleted forms
-        foreach (var deletedForm in summary.DeletedForms)
-        {
-            await publishEndpoint.Publish(new FormDeletedMessage
-            {
-                FormName = deletedForm.FormName,
-                Link = deletedForm.LastKnownLink,
-                LastSeen = summary.RunTime
-            });
-            _logger.LogInformation("Published FormDeletedMessage for {FormName}", deletedForm.FormName);
-        }
     }
 }

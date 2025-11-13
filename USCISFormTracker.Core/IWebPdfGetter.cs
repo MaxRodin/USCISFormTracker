@@ -4,5 +4,5 @@ namespace USCISFormTracker.Core;
 
 public interface IWebPdfGetter
 {
-  IEnumerable<PdfLinkInfo> GetPdfLinks();
+    Task<IEnumerable<ScrapedPdf>> GetPdfLinksAsync();
 }

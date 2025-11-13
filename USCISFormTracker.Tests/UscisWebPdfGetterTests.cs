@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Moq;
 using USCISFormTracker.Core;
 using USCISFormTracker.Tests.TestHelpers;
 
@@ -6,7 +8,7 @@ namespace USCISFormTracker.Tests;
 public class UscisWebPdfGetterTests
 {
     [Fact]
-    public void GetPdfLinks_ShouldExtractFormDetailLinks_FromAllFormsPage()
+    public async Task GetPdfLinks_ShouldExtractFormDetailLinks_FromAllFormsPage()
     {
         // Arrange
         var mockHandler = new MockHttpMessageHandler();
@@ -15,10 +17,11 @@ public class UscisWebPdfGetterTests
         mockHandler.AddHtmlResponse("https://www.uscis.gov/forms/all-forms", allFormsHtml);
 
         var httpClient = new HttpClient(mockHandler);
-        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms");
+        var mockLogger = new Mock<ILogger<UscisWebPdfGetter>>();
+        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms", mockLogger.Object);
 
         // Act
-        var links = getter.GetPdfLinks().ToList();
+        var links = (await getter.GetPdfLinksAsync()).ToList();
 
         // Assert
         Assert.Empty(links); // Because we haven't set up the detail page responses yet
@@ -26,7 +29,7 @@ public class UscisWebPdfGetterTests
     }
 
     [Fact]
-    public void GetPdfLinks_ShouldNavigateToDetailPages_AndExtractPdfLinks()
+    public async Task GetPdfLinks_ShouldNavigateToDetailPages_AndExtractPdfLinks()
     {
         // Arrange
         var mockHandler = new MockHttpMessageHandler();
@@ -42,10 +45,11 @@ public class UscisWebPdfGetterTests
         mockHandler.AddHtmlResponse("https://www.uscis.gov/i-751", i751DetailHtml);
 
         var httpClient = new HttpClient(mockHandler);
-        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms");
+        var mockLogger = new Mock<ILogger<UscisWebPdfGetter>>();
+        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms", mockLogger.Object);
 
         // Act
-        var links = getter.GetPdfLinks().ToList();
+        var links = (await getter.GetPdfLinksAsync()).ToList();
 
         // Assert
         Assert.Equal(2, links.Count);
@@ -62,7 +66,7 @@ public class UscisWebPdfGetterTests
     }
 
     [Fact]
-    public void GetPdfLinks_ShouldOnlyExtractFormPdfs_NotInstructions()
+    public async Task GetPdfLinks_ShouldOnlyExtractFormPdfs_NotInstructions()
     {
         // Arrange
         var mockHandler = new MockHttpMessageHandler();
@@ -73,10 +77,11 @@ public class UscisWebPdfGetterTests
         mockHandler.AddHtmlResponse("https://www.uscis.gov/i-751", i751DetailHtml);
 
         var httpClient = new HttpClient(mockHandler);
-        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms");
+        var mockLogger = new Mock<ILogger<UscisWebPdfGetter>>();
+        var getter = new UscisWebPdfGetter(httpClient, "https://www.uscis.gov/forms/all-forms", mockLogger.Object);
 
         // Act
-        var links = getter.GetPdfLinks().ToList();
+        var links = (await getter.GetPdfLinksAsync()).ToList();
 
         // Assert
         // Should only get the form PDF, not the instructions PDF

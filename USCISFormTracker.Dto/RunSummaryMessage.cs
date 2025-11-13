@@ -24,4 +24,9 @@ public class FormSummaryItem
     public required string FileName { get; set; }
     public required string FormName { get; set; }
     public required string FullLink { get; set; }
+
+    // Diff details (for changed forms only)
+    public List<string>? AddedLines { get; set; }
+    public List<string>? DeletedLines { get; set; }
+    public List<string>? ModifiedLines { get; set; }
 }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using USCISFormTracker.Core.PdfReaders;
 
 namespace USCISFormTracker.Core;
@@ -27,7 +28,8 @@ public static class ServiceExtensions
             var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
             var formsPageUrl = configuration["UscisConfig:FormsPageUrl"]
                 ?? throw new InvalidOperationException("UscisConfig:FormsPageUrl not configured");
-            return new UscisWebPdfGetter(httpClient, formsPageUrl);
+            var logger = sp.GetRequiredService<ILogger<UscisWebPdfGetter>>();
+            return new UscisWebPdfGetter(httpClient, formsPageUrl, logger);
         });
 
         // Form comparison service (pure logic)

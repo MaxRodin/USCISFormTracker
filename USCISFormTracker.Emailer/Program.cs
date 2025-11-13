@@ -1,8 +1,12 @@
 using MassTransit;
 using USCISFormTracker.Emailer;
 using USCISFormTracker.Emailer.Consumers;
+using USCISFormTracker.Emailer.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// Register Email Content Builder
+builder.Services.AddSingleton<IEmailContentBuilder, EmailContentBuilder>();
 
 // Register Email Sender
 builder.Services.AddSingleton<IEmailSender>(sp =>
@@ -24,10 +28,7 @@ builder.Services.AddSingleton<IEmailSender>(sp =>
 // Configure MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
-    // Register consumers
-    x.AddConsumer<FormChangeDetectedConsumer>();
-    x.AddConsumer<FormAddedConsumer>();
-    x.AddConsumer<FormDeletedConsumer>();
+    // Register consumer (only RunSummaryConsumer - we always send aggregate summaries)
     x.AddConsumer<RunSummaryConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>

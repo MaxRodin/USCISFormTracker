@@ -39,7 +39,7 @@ public class FormComparisonService : IFormComparisonService
         _logger.LogInformation("Starting form comparison at {RunTime}", runTime);
 
         // Get current PDFs from USCIS website
-        var pdfLinks = _webPdfGetter.GetPdfLinks().ToList();
+        var pdfLinks = (await _webPdfGetter.GetPdfLinksAsync()).ToList();
         summary.TotalFormsOnWebsite = pdfLinks.Count;
         _logger.LogInformation("Found {Count} PDF links on USCIS website", pdfLinks.Count);
 
@@ -86,20 +86,20 @@ public class FormComparisonService : IFormComparisonService
     }
 
     private async Task ProcessFormAsync(
-        PdfLinkInfo pdfLinkInfo,
+        ScrapedPdf scrapedPdf,
         Dictionary<string, FormSnapshot> existingDict,
         FormRunSummary summary,
         HttpClient httpClient)
     {
-        _logger.LogDebug("Processing form: {FileName}", pdfLinkInfo.FileName);
+        _logger.LogDebug("Processing form: {FileName}", scrapedPdf.FileName);
 
         // Download PDF
-        using var response = await httpClient.GetAsync(pdfLinkInfo.FullLink);
+        using var response = await httpClient.GetAsync(scrapedPdf.FullLink);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning(
                 "Failed to download PDF from {Link}: {StatusCode}",
-                pdfLinkInfo.FullLink,
+                scrapedPdf.FullLink,
                 response.StatusCode);
             return;
         }
@@ -113,17 +113,17 @@ public class FormComparisonService : IFormComparisonService
         var hash = _hasher.ComputeHash(text);
 
         // Extract form name from filename
-        var formName = ExtractFormName(pdfLinkInfo.FileName);
+        var formName = ExtractFormName(scrapedPdf.FileName);
 
         // Check if we've seen this form before
-        if (!existingDict.TryGetValue(pdfLinkInfo.FileName, out var existingSnapshot))
+        if (!existingDict.TryGetValue(scrapedPdf.FileName, out var existingSnapshot))
         {
             // New form discovered
-            _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, pdfLinkInfo.FileName);
+            _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, scrapedPdf.FileName);
             summary.AddedForms.Add(new AddedForm
             {
-                FileName = pdfLinkInfo.FileName,
-                FullLink = pdfLinkInfo.FullLink,
+                FileName = scrapedPdf.FileName,
+                FullLink = scrapedPdf.FullLink,
                 FormName = formName,
                 Hash = hash,
                 ExtractedText = text
@@ -132,15 +132,15 @@ public class FormComparisonService : IFormComparisonService
         else if (existingSnapshot.Hash != hash)
         {
             // Form changed
-            _logger.LogWarning("Form change detected: {FormName} ({FileName})", formName, pdfLinkInfo.FileName);
+            _logger.LogWarning("Form change detected: {FormName} ({FileName})", formName, scrapedPdf.FileName);
 
             // Generate diff using stored old text
             var diffLines = _differ.GetDiffLines(existingSnapshot.ExtractedText, text);
 
             summary.ChangedForms.Add(new ChangedForm
             {
-                FileName = pdfLinkInfo.FileName,
-                FullLink = pdfLinkInfo.FullLink,
+                FileName = scrapedPdf.FileName,
+                FullLink = scrapedPdf.FullLink,
                 FormName = formName,
                 OldHash = existingSnapshot.Hash,
                 NewHash = hash,

@@ -1,4 +1,5 @@
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using USCISFormTracker.Core.Models;
 
 namespace USCISFormTracker.Core;
@@ -7,23 +8,25 @@ public class UscisWebPdfGetter : IWebPdfGetter
 {
     private readonly HttpClient _httpClient;
     private readonly string _formsPageUrl;
+    private readonly ILogger<UscisWebPdfGetter> _logger;
 
-    public UscisWebPdfGetter(HttpClient httpClient, string formsPageUrl)
+    public UscisWebPdfGetter(HttpClient httpClient, string formsPageUrl, ILogger<UscisWebPdfGetter> logger)
     {
         _httpClient = httpClient;
         _formsPageUrl = formsPageUrl;
+        _logger = logger;
     }
 
-    public IEnumerable<PdfLinkInfo> GetPdfLinks()
+    public async Task<IEnumerable<ScrapedPdf>> GetPdfLinksAsync()
     {
         // Step 1: Get the all-forms page and extract form detail links
-        var formDetailLinks = GetFormDetailLinks();
+        var formDetailLinks = await GetFormDetailLinksAsync();
 
         // Step 2: For each form detail page, fetch it and extract the PDF link
-        var pdfLinks = new List<PdfLinkInfo>();
+        var pdfLinks = new List<ScrapedPdf>();
         foreach (var detailLink in formDetailLinks)
         {
-            var pdfLinkInfo = GetPdfLinkFromDetailPage(detailLink);
+            var pdfLinkInfo = await GetPdfLinkFromDetailPageAsync(detailLink);
             if (pdfLinkInfo != null)
             {
                 pdfLinks.Add(pdfLinkInfo);
@@ -33,9 +36,9 @@ public class UscisWebPdfGetter : IWebPdfGetter
         return pdfLinks;
     }
 
-    private IEnumerable<string> GetFormDetailLinks()
+    private async Task<IEnumerable<string>> GetFormDetailLinksAsync()
     {
-        var html = _httpClient.GetStringAsync(_formsPageUrl).Result;
+        var html = await _httpClient.GetStringAsync(_formsPageUrl);
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
@@ -52,11 +55,11 @@ public class UscisWebPdfGetter : IWebPdfGetter
         return detailLinks;
     }
 
-    private PdfLinkInfo? GetPdfLinkFromDetailPage(string detailPageUrl)
+    private async Task<ScrapedPdf?> GetPdfLinkFromDetailPageAsync(string detailPageUrl)
     {
         try
         {
-            var html = _httpClient.GetStringAsync(detailPageUrl).Result;
+            var html = await _httpClient.GetStringAsync(detailPageUrl);
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
@@ -81,16 +84,16 @@ public class UscisWebPdfGetter : IWebPdfGetter
                 // Extract filename from the href (e.g., "i-751.pdf" from "/sites/default/files/document/forms/i-751.pdf")
                 var fileName = href.Split('/').Last();
 
-                return new PdfLinkInfo
+                return new ScrapedPdf
                 {
                     FileName = fileName,
                     FullLink = fullLink
                 };
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // If we can't fetch a detail page, just skip it
+            _logger.LogWarning(ex, "Failed to fetch detail page {DetailPageUrl}, skipping", detailPageUrl);
         }
 
         return null;
