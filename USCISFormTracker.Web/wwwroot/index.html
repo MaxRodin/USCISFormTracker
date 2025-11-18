@@ -166,11 +166,8 @@
             messageDiv.style.display = 'none';
 
             try {
-                // TODO: Replace YOUR_AWS_IP_OR_DOMAIN with your actual server address
-                // Examples:
-                // - http://YOUR_AWS_IP:8080/mailing-list (direct IP)
-                // - https://api.yourdomain.com/mailing-list (with Cloudflare + SSL)
-                const response = await fetch('http://YOUR_AWS_IP_OR_DOMAIN:8080/mailing-list', {
+                // Call API on same server (relative path)
+                const response = await fetch('/mailing-list', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -3,27 +3,29 @@ using Microsoft.EntityFrameworkCore;
 using USCISFormTracker.Data;
 using USCISFormTracker.Dto;
 using DotNetEnv;
+using System.ComponentModel.DataAnnotations;
 
 // Load environment variables from .env file
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel for HTTPS with Cloudflare Origin Certificate
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // HTTP (optional - can redirect to HTTPS)
+    options.ListenAnyIP(80);
+
+    // HTTPS with Cloudflare Origin Certificate
+    options.ListenAnyIP(443, listenOptions =>
+    {
+        listenOptions.UseHttps("/app/certs/origin.pem", "/app/certs/origin-key.pem");
+    });
+});
+
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Add CORS to allow GitHub Pages to call this API
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowGitHubPages", policy =>
-    {
-        policy.WithOrigins("https://*.github.io")
-              .SetIsOriginAllowedToAllowWildcardSubdomains()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 
 // Database
 var dbHost = builder.Configuration["DATABASE_HOST"] ?? throw new InvalidOperationException("DATABASE_HOST not configured");
@@ -75,9 +77,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Redirect HTTP to HTTPS (Full mode with origin certificate)
 app.UseHttpsRedirection();
-app.UseCors("AllowGitHubPages");
 
+// Serve static files (index.html, images, etc.)
+app.UseDefaultFiles(); // Serves index.html by default
+app.UseStaticFiles();
+
+// API endpoints below
 // AddToMailingList endpoint
 app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IPublishEndpoint publishEndpoint) =>
 {
@@ -98,9 +105,6 @@ app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IPublishEn
 })
 .WithName("AddToMailingList")
 .WithOpenApi();
-
-// Request model for email subscription
-record EmailSubscriptionRequest(string Email);
 
 // GetMostRecentChange endpoint
 app.MapGet("/changes/recent", async (IFormRepository repository) =>
@@ -129,3 +133,8 @@ app.MapGet("/changes/recent", async (IFormRepository repository) =>
 .WithOpenApi();
 
 app.Run();
+
+// Request model for email subscription
+record EmailSubscriptionRequest(
+    [EmailAddress][Required] string Email
+);

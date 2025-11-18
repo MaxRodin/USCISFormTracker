@@ -101,12 +101,12 @@ services:
     networks:
       - uscis-network
 
-  # API Service (Optional - REST API)
-  api:
+  # Web Service (Serves mailing list signup page and API endpoints)
+  web:
     build:
       context: .
-      dockerfile: USCISFormTracker.Api/Dockerfile
-    container_name: uscisft-api
+      dockerfile: USCISFormTracker.Web/Dockerfile
+    container_name: uscisft-web
     environment:
       # Database (containerized PostgreSQL)
       DATABASE_HOST: postgres
@@ -120,11 +120,13 @@ services:
       RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
       # ASP.NET Core
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ASPNETCORE_URLS: http://+:8080
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/app/certs:ro  # Mount certificates (read-only)
     depends_on:
       postgres:
         condition: service_healthy
