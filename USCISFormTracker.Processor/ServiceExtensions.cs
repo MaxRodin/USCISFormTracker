@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using USCISFormTracker.Processor.Data;
+using USCISFormTracker.Data;
 
 namespace USCISFormTracker.Processor;
 

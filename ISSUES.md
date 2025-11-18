@@ -6,44 +6,7 @@ This document tracks issues identified during codebase review, organized by prio
 
 ## Critical Issues
 
-### Issue #3: Deleted Forms Not Handled in Database
-**Status**: Open
-**Priority**: High
-**Location**: `USCISFormTracker.Processor/Jobs/FormMonitorJob.cs:135-141`
-
-**Problem**: When forms are removed from the USCIS website, they are detected and reported in emails, but remain in the database indefinitely. This causes data integrity issues over time.
-
-**Current Code**:
-```csharp
-// TODO: Handle deleted forms (mark as inactive or remove)
-foreach (var deletedForm in summary.DeletedForms)
-{
-    _logger.LogWarning("Form deleted but not removed from database: {FormName}", deletedForm.FormName);
-}
-```
-
-**Impact**: Medium-High - Data accumulates incorrectly, database grows with stale records
-
-**Recommended Solution**: Implement soft delete pattern
-```csharp
-// 1. Add to PdfFormRecord.cs:
-public bool IsActive { get; set; } = true;
-public DateTime? DeletedAt { get; set; }
-
-// 2. Update FormMonitorJob.cs:
-foreach (var deletedForm in summary.DeletedForms)
-{
-    var existingRecord = await repository.GetFormRecordByLinkAsync(deletedForm.FileName);
-    if (existingRecord != null)
-    {
-        existingRecord.IsActive = false;
-        existingRecord.DeletedAt = summary.RunTime;
-        await repository.UpdateFormRecordAsync(existingRecord);
-    }
-}
-
-// 3. Update queries to filter: .Where(f => f.IsActive)
-```
+All critical issues have been resolved! ✓
 
 ---
 
@@ -96,41 +59,6 @@ services.AddHttpClient<IWebPdfGetter, UscisWebPdfGetter>()
 1. Use NpgsqlConnectionStringBuilder which hides passwords in error messages
 2. Ensure logging configuration doesn't log connection strings
 3. Consider using secrets management (Azure Key Vault, AWS Secrets Manager, etc.)
-
----
-
-### Issue #6: No Configuration Validation at Startup
-**Status**: Open
-**Priority**: Medium
-**Location**: All `Program.cs` files
-
-**Problem**: Missing configuration values cause runtime failures with unclear error messages. Makes troubleshooting difficult.
-
-**Impact**: Medium - Poor developer experience, difficult debugging
-
-**Recommended Solution**:
-```csharp
-// Add to Processor/Program.cs after builder.Build()
-var requiredEnvVars = new Dictionary<string, string?>
-{
-    ["DATABASE_HOST"] = Environment.GetEnvironmentVariable("DATABASE_HOST"),
-    ["DATABASE_PASSWORD"] = Environment.GetEnvironmentVariable("DATABASE_PASSWORD"),
-    ["DATABASE_NAME"] = Environment.GetEnvironmentVariable("DATABASE_NAME"),
-    ["RabbitMQ:Host"] = builder.Configuration["RabbitMQ:Host"],
-};
-
-var missingConfigs = requiredEnvVars
-    .Where(kvp => string.IsNullOrWhiteSpace(kvp.Value))
-    .Select(kvp => kvp.Key)
-    .ToList();
-
-if (missingConfigs.Any())
-{
-    throw new InvalidOperationException(
-        $"Missing required configuration: {string.Join(", ", missingConfigs)}. " +
-        "Please check your .env file and environment variables.");
-}
-```
 
 ---
 
@@ -248,38 +176,7 @@ _logger.LogError("Error processing form {FileName}: {ErrorMessage}", fileName, e
 
 ## Nice-to-Have Enhancements
 
-### Issue #11: No Rate Limiting on USCIS Website
-**Status**: Open
-**Priority**: Low
-**Location**: `USCISFormTracker.Core/FormComparisonService.cs`
 
-**Problem**: Downloads all PDFs sequentially with no delays. Could overwhelm USCIS servers or trigger rate limiting.
-
-**Impact**: Low - Risk of IP blocking, being a bad citizen
-
-**Recommended Solution**: Add concurrency limiting
-```csharp
-private static readonly SemaphoreSlim _semaphore = new(3, 3); // Max 3 concurrent
-
-// In ProcessFormAsync, before HTTP call:
-await _semaphore.WaitAsync();
-try
-{
-    using var response = await httpClient.GetAsync(scrapedPdf.FullLink);
-    // ... rest of processing
-}
-finally
-{
-    _semaphore.Release();
-}
-```
-
-Or add delay between requests:
-```csharp
-await Task.Delay(TimeSpan.FromMilliseconds(100)); // 100ms between requests
-```
-
----
 
 ### Issue #12: Missing Metrics and Observability
 **Status**: Open
@@ -538,6 +435,35 @@ These are features that don't exist but would be valuable:
 **Status**: Fixed
 **Fixed In**: Commit [pending]
 **Solution**: Added ILogger to UscisWebPdfGetter, replaced empty catch with logging
+
+### ~~Issue #3: Deleted Forms Not Handled in Database~~ ✓
+**Status**: Fixed
+**Fixed In**: Commit [pending]
+**Solution**:
+- Created `FormComparisonHelper.GetDeletedForms()` in Core for pure deletion detection logic
+- Added `IsActive` (bool) and `DeletedAt` (DateTime?) fields to `PdfFormRecord`
+- Updated `FormRepository` to filter active forms and added `GetFormRecordByLinkIncludingDeletedAsync()` method
+- Implemented soft delete in `FormMonitorJob.UpdateDatabaseAsync()`
+- Updated `FormTrackerDbContext` with index on `IsActive` for query performance
+
+### ~~Issue #6: No Configuration Validation at Startup~~ ✓
+**Status**: Fixed
+**Fixed In**: Commit [pending]
+**Solution**:
+- Added `ValidateConfiguration()` method to Processor/Program.cs
+- Added `ValidateConfiguration()` method to Emailer/Program.cs
+- Validates all required environment variables and configuration values
+- Provides clear error messages listing missing configuration
+- Fails fast at startup instead of runtime
+
+### ~~Issue #11: No Rate Limiting on USCIS Website~~ ✓
+**Status**: Fixed
+**Fixed In**: Commit [pending]
+**Solution**:
+- Added 100ms delay between PDF downloads in `FormComparisonService.CompareFormsAsync()`
+- Limits to max 10 requests/second
+- Prevents overwhelming USCIS servers
+- Reduces risk of IP blocking
 
 ---
 

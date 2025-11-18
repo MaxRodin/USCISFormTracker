@@ -55,6 +55,9 @@ public class FormComparisonService : IFormComparisonService
                 processedFileNames.Add(pdfLinkInfo.FileName);
                 await ProcessFormAsync(pdfLinkInfo, existingDict, summary, httpClient);
                 summary.TotalProcessed++;
+
+                // Rate limiting: 100ms delay between requests (max 10 requests/sec)
+                await Task.Delay(100);
             }
             catch (Exception ex)
             {
@@ -62,18 +65,12 @@ public class FormComparisonService : IFormComparisonService
             }
         }
 
-        // Find deleted forms (in database but not on website)
-        var deletedFileNames = existingDict.Keys.Except(processedFileNames);
-        foreach (var fileName in deletedFileNames)
+        // Find deleted forms (in database but not on website) using helper
+        var deletedForms = FormComparisonHelper.GetDeletedForms(existingSnapshots, pdfLinks);
+        foreach (var deletedForm in deletedForms)
         {
-            var existing = existingDict[fileName];
-            summary.DeletedForms.Add(new DeletedForm
-            {
-                FileName = fileName,
-                FormName = existing.FormName,
-                LastKnownLink = existing.FullLink
-            });
-            _logger.LogWarning("Form deleted from website: {FormName} ({FileName})", existing.FormName, fileName);
+            summary.DeletedForms.Add(deletedForm);
+            _logger.LogWarning("Form deleted from website: {FormName} ({FileName})", deletedForm.FormName, deletedForm.FileName);
         }
 
         _logger.LogInformation(

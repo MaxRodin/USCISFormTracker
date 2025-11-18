@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using USCISFormTracker.Processor.Models;
 
-namespace USCISFormTracker.Processor.Data;
+namespace USCISFormTracker.Data;
 
 public class FormRepository : IFormRepository
 {
@@ -15,12 +14,20 @@ public class FormRepository : IFormRepository
     public async Task<PdfFormRecord?> GetFormRecordByLinkAsync(string fileName)
     {
         return await _context.FormRecords
+            .FirstOrDefaultAsync(f => f.FileName == fileName && f.IsActive);
+    }
+
+    public async Task<PdfFormRecord?> GetFormRecordByLinkIncludingDeletedAsync(string fileName)
+    {
+        return await _context.FormRecords
             .FirstOrDefaultAsync(f => f.FileName == fileName);
     }
 
     public async Task<List<PdfFormRecord>> GetAllFormRecordsAsync()
     {
-        return await _context.FormRecords.ToListAsync();
+        return await _context.FormRecords
+            .Where(f => f.IsActive)
+            .ToListAsync();
     }
 
     public async Task AddFormRecordAsync(PdfFormRecord record)

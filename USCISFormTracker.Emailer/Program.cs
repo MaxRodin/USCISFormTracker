@@ -49,4 +49,36 @@ builder.Services.AddMassTransit(x =>
 });
 
 var host = builder.Build();
+
+// Validate required configuration before starting
+ValidateConfiguration(builder.Configuration);
+
 host.Run();
+
+static void ValidateConfiguration(IConfiguration configuration)
+{
+    var requiredConfigs = new Dictionary<string, string?>
+    {
+        ["Mailgun:ApiKey"] = configuration["Mailgun:ApiKey"],
+        ["Mailgun:Domain"] = configuration["Mailgun:Domain"],
+        ["Mailgun:FromEmail"] = configuration["Mailgun:FromEmail"],
+        ["Mailgun:FromName"] = configuration["Mailgun:FromName"],
+        ["Mailgun:MailingListAddress"] = configuration["Mailgun:MailingListAddress"],
+        ["RabbitMQ:Host"] = configuration["RabbitMQ:Host"],
+    };
+
+    var missingConfigs = requiredConfigs
+        .Where(kvp => string.IsNullOrWhiteSpace(kvp.Value))
+        .Select(kvp => kvp.Key)
+        .ToList();
+
+    if (missingConfigs.Any())
+    {
+        var errorMessage = $"Missing required configuration: {string.Join(", ", missingConfigs)}. " +
+                          "Please check your appsettings.json file.";
+        Console.Error.WriteLine($"ERROR: {errorMessage}");
+        throw new InvalidOperationException(errorMessage);
+    }
+
+    Console.WriteLine("✓ Configuration validation passed");
+}

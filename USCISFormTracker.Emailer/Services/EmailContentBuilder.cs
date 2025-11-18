@@ -7,15 +7,7 @@ public class EmailContentBuilder : IEmailContentBuilder
 {
     public (string subject, string htmlBody, string textBody) BuildRunSummaryEmail(RunSummaryMessage summary)
     {
-        string subject;
-        if (summary.IsFirstRun)
-        {
-            subject = $"USCIS Form Tracker - Initial Sync Complete ({summary.NewFormsCount} forms added)";
-        }
-        else
-        {
-            subject = $"USCIS Form Tracker - Daily Summary ({summary.NewFormsCount} new, {summary.ChangedFormsCount} changed, {summary.DeletedFormsCount} deleted)";
-        }
+        var subject = $"USCIS Form Tracker - Daily Summary ({summary.NewFormsCount} new, {summary.ChangedFormsCount} changed, {summary.DeletedFormsCount} deleted)";
 
         var htmlBody = BuildHtml(summary);
         var textBody = BuildText(summary);
@@ -29,16 +21,7 @@ public class EmailContentBuilder : IEmailContentBuilder
         sb.AppendLine("<html><body>");
 
         // Header
-        if (summary.IsFirstRun)
-        {
-            sb.AppendLine("<h2>USCIS Form Tracker - Initial Sync Complete</h2>");
-            sb.AppendLine($"<p>The USCIS Form Tracker has completed its first run and is now monitoring <strong>{summary.TotalFormsOnWebsite} forms</strong>.</p>");
-        }
-        else
-        {
-            sb.AppendLine("<h2>USCIS Form Tracker - Daily Summary</h2>");
-        }
-
+        sb.AppendLine("<h2>USCIS Form Tracker - Daily Summary</h2>");
         sb.AppendLine($"<p><strong>Run Time:</strong> {summary.RunTime:yyyy-MM-dd HH:mm:ss} UTC</p>");
         sb.AppendLine("<hr>");
 
@@ -148,19 +131,8 @@ public class EmailContentBuilder : IEmailContentBuilder
         var sb = new StringBuilder();
 
         // Header
-        if (summary.IsFirstRun)
-        {
-            sb.AppendLine("USCIS Form Tracker - Initial Sync Complete");
-            sb.AppendLine("===========================================");
-            sb.AppendLine();
-            sb.AppendLine($"The USCIS Form Tracker has completed its first run and is now monitoring {summary.TotalFormsOnWebsite} forms.");
-        }
-        else
-        {
-            sb.AppendLine("USCIS Form Tracker - Daily Summary");
-            sb.AppendLine("===================================");
-        }
-
+        sb.AppendLine("USCIS Form Tracker - Daily Summary");
+        sb.AppendLine("===================================");
         sb.AppendLine();
         sb.AppendLine($"Run Time: {summary.RunTime:yyyy-MM-dd HH:mm:ss} UTC");
         sb.AppendLine();

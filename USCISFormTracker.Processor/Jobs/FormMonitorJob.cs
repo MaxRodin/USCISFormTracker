@@ -5,9 +5,8 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using USCISFormTracker.Core;
 using USCISFormTracker.Core.Models;
+using USCISFormTracker.Data;
 using USCISFormTracker.Dto;
-using USCISFormTracker.Processor.Data;
-using USCISFormTracker.Processor.Models;
 
 namespace USCISFormTracker.Processor.Jobs;
 
@@ -132,12 +131,17 @@ public class FormMonitorJob : IJob
             }
         }
 
-        // TODO: Handle deleted forms (mark as inactive or remove)
-        // For now, just log them
+        // Handle deleted forms (soft delete)
         foreach (var deletedForm in summary.DeletedForms)
         {
-            _logger.LogWarning("Form deleted but not removed from database: {FormName}", deletedForm.FormName);
-            // Could implement soft delete or removal here
+            var existingRecord = await repository.GetFormRecordByLinkIncludingDeletedAsync(deletedForm.FileName);
+            if (existingRecord != null && existingRecord.IsActive)
+            {
+                existingRecord.IsActive = false;
+                existingRecord.DeletedAt = summary.RunTime;
+                await repository.UpdateFormRecordAsync(existingRecord);
+                _logger.LogInformation("Form marked as deleted in database: {FormName} ({FileName})", deletedForm.FormName, deletedForm.FileName);
+            }
         }
     }
 

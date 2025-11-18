@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using USCISFormTracker.Processor.Models;
 
-namespace USCISFormTracker.Processor.Data;
+namespace USCISFormTracker.Data;
 
 public class FormTrackerDbContext : DbContext
 {
@@ -25,6 +24,9 @@ public class FormTrackerDbContext : DbContext
             entity.Property(e => e.Hash).IsRequired();
             entity.Property(e => e.ExtractedText).IsRequired();
             entity.Property(e => e.LastChecked).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            entity.Property(e => e.DeletedAt).IsRequired(false);
+            entity.HasIndex(e => e.IsActive); // For filtering active/deleted forms
         });
 
         modelBuilder.Entity<PdfFormChange>(entity =>

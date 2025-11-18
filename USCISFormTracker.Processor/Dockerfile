@@ -4,6 +4,7 @@ WORKDIR /src
 # Copy csproj files and restore dependencies
 COPY ["USCISFormTracker.Processor/USCISFormTracker.Processor.csproj", "USCISFormTracker.Processor/"]
 COPY ["USCISFormTracker.Core/USCISFormTracker.Core.csproj", "USCISFormTracker.Core/"]
+COPY ["USCISFormTracker.Data/USCISFormTracker.Data.csproj", "USCISFormTracker.Data/"]
 COPY ["USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "USCISFormTracker.Dto/"]
 RUN dotnet restore "USCISFormTracker.Processor/USCISFormTracker.Processor.csproj"
 

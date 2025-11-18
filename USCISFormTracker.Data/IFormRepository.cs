@@ -1,10 +1,9 @@
-using USCISFormTracker.Processor.Models;
-
-namespace USCISFormTracker.Processor.Data;
+namespace USCISFormTracker.Data;
 
 public interface IFormRepository
 {
     Task<PdfFormRecord?> GetFormRecordByLinkAsync(string link);
+    Task<PdfFormRecord?> GetFormRecordByLinkIncludingDeletedAsync(string link);
     Task<List<PdfFormRecord>> GetAllFormRecordsAsync();
     Task AddFormRecordAsync(PdfFormRecord record);
     Task UpdateFormRecordAsync(PdfFormRecord record);

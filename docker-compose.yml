@@ -1,4 +1,24 @@
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: uscisft-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-uscis_forms}
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - uscis-network
+
   # RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -26,8 +46,8 @@ services:
       dockerfile: USCISFormTracker.Processor/Dockerfile
     container_name: uscisft-processor
     environment:
-      # Database (external PostgreSQL)
-      DATABASE_HOST: ${DATABASE_HOST:-192.168.1.8}
+      # Database (containerized PostgreSQL)
+      DATABASE_HOST: postgres
       DATABASE_PORT: "5432"
       DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
       DATABASE_USER: ${DATABASE_USER:-postgres}
@@ -42,7 +62,11 @@ services:
       Quartz__CronSchedule: ${QUARTZ_CRON_SCHEDULE:-0 0 2 * * ?}
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+    ports:
+      - "5000:5000"  # API endpoints
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     volumes:
@@ -84,8 +108,8 @@ services:
       dockerfile: USCISFormTracker.Api/Dockerfile
     container_name: uscisft-api
     environment:
-      # Database (external PostgreSQL)
-      DATABASE_HOST: ${DATABASE_HOST:-192.168.1.8}
+      # Database (containerized PostgreSQL)
+      DATABASE_HOST: postgres
       DATABASE_PORT: "5432"
       DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
       DATABASE_USER: ${DATABASE_USER:-postgres}
@@ -102,6 +126,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
@@ -109,6 +135,8 @@ services:
       - uscis-network
 
 volumes:
+  postgres_data:
+    driver: local
   rabbitmq_data:
     driver: local
   forms_data:
