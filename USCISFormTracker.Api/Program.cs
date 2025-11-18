@@ -13,6 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS to allow GitHub Pages to call this API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowGitHubPages", policy =>
+    {
+        policy.WithOrigins("https://*.github.io")
+              .SetIsOriginAllowedToAllowWildcardSubdomains()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Database
 var dbHost = builder.Configuration["DATABASE_HOST"] ?? throw new InvalidOperationException("DATABASE_HOST not configured");
 var dbPort = builder.Configuration["DATABASE_PORT"] ?? "5432";
@@ -64,27 +76,31 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowGitHubPages");
 
 // AddToMailingList endpoint
-app.MapPost("/mailing-list", async (string email, IPublishEndpoint publishEndpoint) =>
+app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IPublishEndpoint publishEndpoint) =>
 {
-    if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+    if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
     {
         return Results.BadRequest(new { error = "Invalid email address" });
     }
 
     var message = new AddToMailingListMessage
     {
-        Email = email,
+        Email = request.Email,
         SubscribedAt = DateTime.UtcNow
     };
 
     await publishEndpoint.Publish(message);
 
-    return Results.Ok(new { message = "Successfully added to mailing list", email });
+    return Results.Ok(new { message = "Successfully added to mailing list", email = request.Email });
 })
 .WithName("AddToMailingList")
 .WithOpenApi();
+
+// Request model for email subscription
+record EmailSubscriptionRequest(string Email);
 
 // GetMostRecentChange endpoint
 app.MapGet("/changes/recent", async (IFormRepository repository) =>
