@@ -6,6 +6,7 @@ COPY ["USCISFormTracker.Web/USCISFormTracker.Web.csproj", "USCISFormTracker.Web/
 COPY ["USCISFormTracker.Core/USCISFormTracker.Core.csproj", "USCISFormTracker.Core/"]
 COPY ["USCISFormTracker.Data/USCISFormTracker.Data.csproj", "USCISFormTracker.Data/"]
 COPY ["USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "USCISFormTracker.Dto/"]
+COPY ["USCISFormTracker.Formatting/USCISFormTracker.Formatting.csproj", "USCISFormTracker.Formatting/"]
 RUN dotnet restore "USCISFormTracker.Web/USCISFormTracker.Web.csproj"
 
 # Copy everything else and build

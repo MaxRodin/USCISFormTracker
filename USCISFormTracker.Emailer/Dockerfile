@@ -4,6 +4,8 @@ WORKDIR /src
 # Copy csproj files and restore dependencies
 COPY ["USCISFormTracker.Emailer/USCISFormTracker.Emailer.csproj", "USCISFormTracker.Emailer/"]
 COPY ["USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "USCISFormTracker.Dto/"]
+COPY ["USCISFormTracker.Formatting/USCISFormTracker.Formatting.csproj", "USCISFormTracker.Formatting/"]
+COPY ["USCISFormTracker.Core/USCISFormTracker.Core.csproj", "USCISFormTracker.Core/"]
 RUN dotnet restore "USCISFormTracker.Emailer/USCISFormTracker.Emailer.csproj"
 
 # Copy everything else and build
