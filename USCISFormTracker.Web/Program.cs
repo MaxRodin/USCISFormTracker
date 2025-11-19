@@ -16,10 +16,10 @@ builder.WebHost.ConfigureKestrel(options =>
     // HTTP (optional - can redirect to HTTPS)
     options.ListenAnyIP(80);
 
-    // HTTPS with Cloudflare Origin Certificate
+    // HTTPS with Cloudflare Origin Certificate (using PFX format)
     options.ListenAnyIP(443, listenOptions =>
     {
-        listenOptions.UseHttps("/app/certs/origin.pem", "/app/certs/origin-key.pem");
+        listenOptions.UseHttps("/app/certs/origin.pfx");
     });
 });
 
