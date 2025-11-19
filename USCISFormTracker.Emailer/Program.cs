@@ -2,8 +2,12 @@ using MassTransit;
 using USCISFormTracker.Emailer;
 using USCISFormTracker.Emailer.Consumers;
 using USCISFormTracker.Emailer.Services;
+using USCISFormTracker.Formatting;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// Register Formatting Services
+builder.Services.AddSingleton<IRunSummaryFormatter, RunSummaryFormatter>();
 
 // Register Email Content Builder
 builder.Services.AddSingleton<IEmailContentBuilder, EmailContentBuilder>();

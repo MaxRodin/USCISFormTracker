@@ -19,6 +19,7 @@
     <ProjectReference Include="..\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
     <ProjectReference Include="..\USCISFormTracker.Dto\USCISFormTracker.Dto.csproj" />
     <ProjectReference Include="..\USCISFormTracker.Data\USCISFormTracker.Data.csproj" />
+    <ProjectReference Include="..\USCISFormTracker.Formatting\USCISFormTracker.Formatting.csproj" />
   </ItemGroup>
 
 </Project>

@@ -41,19 +41,11 @@ public class FormMonitorJob : IJob
             // Apply pending migrations
             await _dbContext.Database.MigrateAsync();
 
-            // Determine if this is first run (empty database)
-            var existingRecords = await _repository.GetAllFormRecordsAsync();
-            bool isFirstRun = existingRecords.Count == 0;
-            if (isFirstRun)
-            {
-                _logger.LogInformation("First run detected - will send aggregate summary instead of individual notifications");
-            }
-
             // Execute monitoring (orchestration handled by Core)
             var summary = await _monitoringService.MonitorFormsAsync();
 
             // Publish results
-            await PublishAggregateSummaryAsync(summary, isFirstRun);
+            await PublishAggregateSummaryAsync(summary);
 
             _logger.LogInformation("Form monitoring completed successfully at {Timestamp} UTC", DateTime.UtcNow);
         }
@@ -64,7 +56,7 @@ public class FormMonitorJob : IJob
         }
     }
 
-    private async Task PublishAggregateSummaryAsync(FormRunSummary summary, bool isFirstRun)
+    private async Task PublishAggregateSummaryAsync(FormRunSummary summary)
     {
         _logger.LogInformation(
             "Publishing aggregate summary: {NewCount} new, {ChangedCount} changed, {DeletedCount} deleted",
@@ -75,7 +67,6 @@ public class FormMonitorJob : IJob
         var message = new RunSummaryMessage
         {
             RunTime = summary.RunTime,
-            IsFirstRun = isFirstRun,
             TotalFormsOnWebsite = summary.TotalFormsOnWebsite,
             NewFormsCount = summary.AddedForms.Count,
             ChangedFormsCount = summary.ChangedForms.Count,

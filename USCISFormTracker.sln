@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Core", "USCISFormTracker.Core\USCISFormTracker.Core.csproj", "{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.ConsoleApp", "USCISFormTracker.ConsoleApp\USCISFormTracker.ConsoleApp.csproj", "{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Emailer", "USCISFormTracker.Emailer\USCISFormTracker.Emailer.csproj", "{E4DDF47E-5F3B-4623-8F2B-EA1CD788A9BE}"
@@ -18,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Data", "USCISFormTracker.Data\USCISFormTracker.Data.csproj", "{CD2D9FEB-E1EC-4BB3-AA93-2E83D2B17017}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Web", "USCISFormTracker.Web\USCISFormTracker.Web.csproj", "{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Formatting", "USCISFormTracker.Formatting\USCISFormTracker.Formatting.csproj", "{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,10 +32,6 @@ Global
 		{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CA18B5D-3EBF-49BB-A3EC-6C0C8CC465D9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -60,5 +56,9 @@ Global
 		{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

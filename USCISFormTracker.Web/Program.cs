@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using USCISFormTracker.Core;
 using USCISFormTracker.Data;
 using USCISFormTracker.Dto;
+using USCISFormTracker.Formatting;
 using DotNetEnv;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,6 +31,9 @@ builder.Services.AddSwaggerGen();
 
 // Data layer (DbContext + Repository)
 builder.Services.AddDataServices(builder.Configuration);
+
+// Formatting services
+builder.Services.AddSingleton<IFormChangeFormatter, FormChangeFormatter>();
 
 // Configure MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>
@@ -96,27 +100,19 @@ app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IPublishEn
 .WithOpenApi();
 
 // GetMostRecentChange endpoint
-app.MapGet("/changes/recent", async (IFormRepository repository) =>
+app.MapGet("/changes/recent", async (IFormRepository repository, IFormChangeFormatter formatter) =>
 {
     var changes = await repository.GetRecentChangesAsync(1);
 
     if (changes.Count == 0)
     {
-        return Results.NotFound(new { message = "No changes found" });
+        return Results.Content("<html><body><h2>No recent changes found</h2></body></html>", "text/html");
     }
 
     var mostRecent = changes[0];
+    var html = formatter.FormatAsHtml(mostRecent);
 
-    return Results.Ok(new
-    {
-        fileName = mostRecent.FileName,
-        fullLink = mostRecent.FullLink,
-        formName = mostRecent.FormName,
-        oldHash = mostRecent.OldHash,
-        newHash = mostRecent.NewHash,
-        diffLinesSerialized = mostRecent.DiffLinesSerialized,
-        detectedChangeTime = mostRecent.DetectedChangeTime
-    });
+    return Results.Content(html, "text/html");
 })
 .WithName("GetMostRecentChange")
 .WithOpenApi();

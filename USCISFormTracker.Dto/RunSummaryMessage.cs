@@ -6,7 +6,6 @@ namespace USCISFormTracker.Dto;
 public class RunSummaryMessage
 {
     public required DateTime RunTime { get; set; }
-    public required bool IsFirstRun { get; set; }
     public required int TotalFormsOnWebsite { get; set; }
     public required int NewFormsCount { get; set; }
     public required int ChangedFormsCount { get; set; }
