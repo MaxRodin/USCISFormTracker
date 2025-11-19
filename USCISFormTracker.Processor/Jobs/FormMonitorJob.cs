@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
@@ -39,8 +40,8 @@ public class FormMonitorJob : IJob
             var httpClient = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
             var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
-            // Ensure database is created
-            await dbContext.Database.EnsureCreatedAsync();
+            // Apply pending migrations
+            await dbContext.Database.MigrateAsync();
 
             // Get existing form records from database
             var existingRecords = await repository.GetAllFormRecordsAsync();
@@ -60,7 +61,8 @@ public class FormMonitorJob : IJob
                 FullLink = r.FullLink,
                 FormName = r.FormName,
                 Hash = r.Hash,
-                ExtractedText = r.ExtractedText
+                ExtractedText = r.ExtractedText,
+                LatestPdfPath = r.LatestPdfPath
             }).ToList();
 
             // Call Core to perform comparison
@@ -99,6 +101,7 @@ public class FormMonitorJob : IJob
                 FormName = addedForm.FormName,
                 Hash = addedForm.Hash,
                 ExtractedText = addedForm.ExtractedText,
+                LatestPdfPath = addedForm.PdfPath,
                 LastChecked = summary.RunTime
             };
             await repository.AddFormRecordAsync(record);
@@ -118,14 +121,17 @@ public class FormMonitorJob : IJob
                     FormName = changedForm.FormName,
                     OldHash = changedForm.OldHash,
                     NewHash = changedForm.NewHash,
+                    OldPdfPath = changedForm.OldPdfPath,
+                    NewPdfPath = changedForm.NewPdfPath,
                     DiffLinesSerialized = JsonSerializer.Serialize(changedForm.Diff),
                     DetectedChangeTime = summary.RunTime
                 };
                 await repository.AddFormChangeAsync(change);
 
-                // Update record with new hash and text
+                // Update record with new hash, text, and PDF path
                 existingRecord.Hash = changedForm.NewHash;
                 existingRecord.ExtractedText = changedForm.NewText;
+                existingRecord.LatestPdfPath = changedForm.NewPdfPath;
                 existingRecord.LastChecked = summary.RunTime;
                 await repository.UpdateFormRecordAsync(existingRecord);
             }

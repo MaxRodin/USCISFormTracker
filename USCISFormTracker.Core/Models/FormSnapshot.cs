@@ -10,4 +10,5 @@ public class FormSnapshot
     public required string FormName { get; set; }
     public required string Hash { get; set; }
     public required string ExtractedText { get; set; }
+    public string? LatestPdfPath { get; set; } // Path to most recent PDF file
 }

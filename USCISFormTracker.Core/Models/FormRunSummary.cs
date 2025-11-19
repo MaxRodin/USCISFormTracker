@@ -23,6 +23,7 @@ public class AddedForm
     public required string FormName { get; set; }
     public required string Hash { get; set; }
     public required string ExtractedText { get; set; }
+    public string? PdfPath { get; set; } // Path to saved PDF file
 }
 
 /// <summary>
@@ -38,6 +39,8 @@ public class ChangedForm
     public required string OldText { get; set; }
     public required string NewText { get; set; }
     public required DiffLines Diff { get; set; }
+    public string? OldPdfPath { get; set; } // Path to previous PDF version
+    public string? NewPdfPath { get; set; } // Path to new PDF version
 }
 
 /// <summary>

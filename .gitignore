@@ -95,6 +95,7 @@ Desktop.ini
 # Application specific
 # Downloaded PDFs and form data
 forms/
+pdfs/
 *.pdf
 
 # Email configuration (may contain sensitive data)

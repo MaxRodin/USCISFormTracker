@@ -13,6 +13,7 @@ public class FormComparisonService : IFormComparisonService
     private readonly IPdfReader _pdfReader;
     private readonly IHasher _hasher;
     private readonly IDiffer _differ;
+    private readonly IPdfFileManager _pdfFileManager;
     private readonly ILogger<FormComparisonService> _logger;
 
     public FormComparisonService(
@@ -20,12 +21,14 @@ public class FormComparisonService : IFormComparisonService
         IPdfReader pdfReader,
         IHasher hasher,
         IDiffer differ,
+        IPdfFileManager pdfFileManager,
         ILogger<FormComparisonService> logger)
     {
         _webPdfGetter = webPdfGetter;
         _pdfReader = pdfReader;
         _hasher = hasher;
         _differ = differ;
+        _pdfFileManager = pdfFileManager;
         _logger = logger;
     }
 
@@ -101,9 +104,11 @@ public class FormComparisonService : IFormComparisonService
             return;
         }
 
-        using var stream = await response.Content.ReadAsStreamAsync();
+        // Read PDF into byte array so we can reuse it for both text extraction and file saving
+        var pdfBytes = await response.Content.ReadAsByteArrayAsync();
 
-        // Extract text
+        // Extract text from byte array
+        using var stream = new MemoryStream(pdfBytes);
         var text = _pdfReader.GetPdfText(stream);
 
         // Compute hash
@@ -117,19 +122,47 @@ public class FormComparisonService : IFormComparisonService
         {
             // New form discovered
             _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, scrapedPdf.FileName);
+
+            // Save PDF to disk
+            string? pdfPath = null;
+            try
+            {
+                pdfPath = await _pdfFileManager.SavePdfAsync(formName, pdfBytes, summary.RunTime);
+                await _pdfFileManager.CleanupOldVersionsAsync(formName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save PDF for new form {FormName}", formName);
+                // Continue without PDF path - don't fail the entire comparison
+            }
+
             summary.AddedForms.Add(new AddedForm
             {
                 FileName = scrapedPdf.FileName,
                 FullLink = scrapedPdf.FullLink,
                 FormName = formName,
                 Hash = hash,
-                ExtractedText = text
+                ExtractedText = text,
+                PdfPath = pdfPath
             });
         }
         else if (existingSnapshot.Hash != hash)
         {
             // Form changed
             _logger.LogWarning("Form change detected: {FormName} ({FileName})", formName, scrapedPdf.FileName);
+
+            // Save new PDF version to disk
+            string? newPdfPath = null;
+            try
+            {
+                newPdfPath = await _pdfFileManager.SavePdfAsync(formName, pdfBytes, summary.RunTime);
+                await _pdfFileManager.CleanupOldVersionsAsync(formName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save PDF for changed form {FormName}", formName);
+                // Continue without PDF path - don't fail the entire comparison
+            }
 
             // Generate diff using stored old text
             var diffLines = _differ.GetDiffLines(existingSnapshot.ExtractedText, text);
@@ -143,7 +176,9 @@ public class FormComparisonService : IFormComparisonService
                 NewHash = hash,
                 OldText = existingSnapshot.ExtractedText,
                 NewText = text,
-                Diff = diffLines
+                Diff = diffLines,
+                OldPdfPath = existingSnapshot.LatestPdfPath,
+                NewPdfPath = newPdfPath
             });
         }
         else

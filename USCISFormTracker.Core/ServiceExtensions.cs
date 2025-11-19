@@ -22,6 +22,14 @@ public static class ServiceExtensions
         services.AddScoped<IPdfReader, PdfPigLayoutPdfReader>(); // Using PdfPig's RecursiveXYCut algorithm
         services.AddScoped<IDiffer, DiffPlexDiffer>();
 
+        // PDF File Manager
+        services.AddScoped<IPdfFileManager>(sp =>
+        {
+            var baseDirectory = configuration["PdfStorage:BaseDirectory"] ?? "pdfs";
+            var logger = sp.GetRequiredService<ILogger<PdfFileManager>>();
+            return new PdfFileManager(baseDirectory, logger);
+        });
+
         // Web PDF Getter
         services.AddScoped<IWebPdfGetter>(sp =>
         {
