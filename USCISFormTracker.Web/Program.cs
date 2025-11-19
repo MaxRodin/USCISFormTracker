@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using USCISFormTracker.Core;
 using USCISFormTracker.Data;
 using USCISFormTracker.Dto;
 using DotNetEnv;
@@ -27,20 +28,8 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Database
-var dbHost = builder.Configuration["DATABASE_HOST"] ?? throw new InvalidOperationException("DATABASE_HOST not configured");
-var dbPort = builder.Configuration["DATABASE_PORT"] ?? "5432";
-var dbName = builder.Configuration["DATABASE_NAME"] ?? throw new InvalidOperationException("DATABASE_NAME not configured");
-var dbUser = builder.Configuration["DATABASE_USER"] ?? throw new InvalidOperationException("DATABASE_USER not configured");
-var dbPassword = builder.Configuration["DATABASE_PASSWORD"] ?? throw new InvalidOperationException("DATABASE_PASSWORD not configured");
-
-var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
-
-builder.Services.AddDbContext<FormTrackerDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// Repository
-builder.Services.AddScoped<IFormRepository, FormRepository>();
+// Data layer (DbContext + Repository)
+builder.Services.AddDataServices(builder.Configuration);
 
 // Configure MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>

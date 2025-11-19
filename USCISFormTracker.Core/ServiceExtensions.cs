@@ -43,6 +43,9 @@ public static class ServiceExtensions
         // Form comparison service (pure logic)
         services.AddScoped<IFormComparisonService, FormComparisonService>();
 
+        // Form monitoring service (orchestration)
+        services.AddScoped<IFormMonitoringService, FormMonitoringService>();
+
         return services;
     }
 }

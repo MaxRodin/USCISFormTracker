@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using USCISFormTracker.Core;
+using USCISFormTracker.Core.Models;
 
 namespace USCISFormTracker.Data;
 
