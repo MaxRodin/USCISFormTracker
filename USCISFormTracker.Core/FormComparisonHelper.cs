@@ -14,7 +14,7 @@ public static class FormComparisonHelper
     /// <param name="newFormSet">Current forms (from website)</param>
     /// <returns>Forms that have been deleted</returns>
     public static IEnumerable<DeletedForm> GetDeletedForms(
-        IEnumerable<FormSnapshot> oldFormSet,
+        IEnumerable<PdfFormRecord> oldFormSet,
         IEnumerable<ScrapedPdf> newFormSet)
     {
         var newFileNames = newFormSet.Select(f => f.FileName).ToHashSet();

@@ -8,12 +8,9 @@ namespace USCISFormTracker.Core;
 public interface IFormComparisonService
 {
     /// <summary>
-    /// Compares current forms on USCIS website against existing snapshots
+    /// Compares current forms on USCIS website against existing records
     /// </summary>
-    /// <param name="existingSnapshots">Current form snapshots from database</param>
-    /// <param name="httpClient">HTTP client for downloading PDFs</param>
+    /// <param name="existingRecords">Current form records from database</param>
     /// <returns>Summary of added, changed, and deleted forms</returns>
-    Task<FormRunSummary> CompareFormsAsync(
-        IEnumerable<FormSnapshot> existingSnapshots,
-        HttpClient httpClient);
+    Task<FormRunSummary> CompareFormsAsync(IEnumerable<PdfFormRecord> existingRecords);
 }

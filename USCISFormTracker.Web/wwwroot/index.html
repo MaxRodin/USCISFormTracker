@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join Our Mailing List</title>
+    <title>USCIS Form Change Tracker</title>
     <style>
         * {
             margin: 0;
@@ -30,7 +30,7 @@
             padding: 3rem 2.5rem;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
+            max-width: 900px;
             width: 90%;
             text-align: center;
             margin-bottom: 2rem;
@@ -148,6 +148,21 @@
             display: block;
         }
 
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 2rem 1.5rem;
@@ -161,8 +176,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Join Our Mailing List</h1>
-        <p>Stay updated with our latest news and announcements</p>
+        <h1>Track Immigration Form Updates</h1>
+        <p>Join our mailing list to receive alerts when USCIS forms change. Latest update below.</p>
 
         <form id="emailForm">
             <div class="form-group">
@@ -185,6 +200,11 @@
         <div class="recent-changes-content" id="recentChangesContent">
             <div class="loading">Loading recent changes...</div>
         </div>
+    </div>
+
+    <div class="disclaimer">
+        This service is created and operated by a volunteer and is not associated with USCIS, DHS,
+        or any government entity. This is not a definitive source - always verify with official government sources.
     </div>
 
     <script>

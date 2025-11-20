@@ -14,6 +14,7 @@ public class FormComparisonService : IFormComparisonService
     private readonly IHasher _hasher;
     private readonly IDiffer _differ;
     private readonly IPdfFileManager _pdfFileManager;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<FormComparisonService> _logger;
 
     public FormComparisonService(
@@ -22,6 +23,7 @@ public class FormComparisonService : IFormComparisonService
         IHasher hasher,
         IDiffer differ,
         IPdfFileManager pdfFileManager,
+        IHttpClientFactory httpClientFactory,
         ILogger<FormComparisonService> logger)
     {
         _webPdfGetter = webPdfGetter;
@@ -29,13 +31,13 @@ public class FormComparisonService : IFormComparisonService
         _hasher = hasher;
         _differ = differ;
         _pdfFileManager = pdfFileManager;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
-    public async Task<FormRunSummary> CompareFormsAsync(
-        IEnumerable<FormSnapshot> existingSnapshots,
-        HttpClient httpClient)
+    public async Task<FormRunSummary> CompareFormsAsync(IEnumerable<PdfFormRecord> existingRecords)
     {
+        var httpClient = _httpClientFactory.CreateClient();
         var runTime = DateTime.UtcNow;
         var summary = new FormRunSummary { RunTime = runTime };
 
@@ -47,7 +49,7 @@ public class FormComparisonService : IFormComparisonService
         _logger.LogInformation("Found {Count} PDF links on USCIS website", pdfLinks.Count);
 
         // Create lookup for existing forms
-        var existingDict = existingSnapshots.ToDictionary(s => s.FileName, s => s);
+        var existingDict = existingRecords.ToDictionary(r => r.FileName, r => r);
         var processedFileNames = new HashSet<string>();
 
         // Process each form from website
@@ -69,7 +71,7 @@ public class FormComparisonService : IFormComparisonService
         }
 
         // Find deleted forms (in database but not on website) using helper
-        var deletedForms = FormComparisonHelper.GetDeletedForms(existingSnapshots, pdfLinks);
+        var deletedForms = FormComparisonHelper.GetDeletedForms(existingRecords, pdfLinks);
         foreach (var deletedForm in deletedForms)
         {
             summary.DeletedForms.Add(deletedForm);
@@ -87,7 +89,7 @@ public class FormComparisonService : IFormComparisonService
 
     private async Task ProcessFormAsync(
         ScrapedPdf scrapedPdf,
-        Dictionary<string, FormSnapshot> existingDict,
+        Dictionary<string, PdfFormRecord> existingDict,
         FormRunSummary summary,
         HttpClient httpClient)
     {
@@ -118,7 +120,7 @@ public class FormComparisonService : IFormComparisonService
         var formName = ExtractFormName(scrapedPdf.FileName);
 
         // Check if we've seen this form before
-        if (!existingDict.TryGetValue(scrapedPdf.FileName, out var existingSnapshot))
+        if (!existingDict.TryGetValue(scrapedPdf.FileName, out var existingRecord))
         {
             // New form discovered
             _logger.LogInformation("New form discovered: {FormName} ({FileName})", formName, scrapedPdf.FileName);
@@ -146,7 +148,7 @@ public class FormComparisonService : IFormComparisonService
                 PdfPath = pdfPath
             });
         }
-        else if (existingSnapshot.Hash != hash)
+        else if (existingRecord.Hash != hash)
         {
             // Form changed
             _logger.LogWarning("Form change detected: {FormName} ({FileName})", formName, scrapedPdf.FileName);
@@ -165,19 +167,19 @@ public class FormComparisonService : IFormComparisonService
             }
 
             // Generate diff using stored old text
-            var diffLines = _differ.GetDiffLines(existingSnapshot.ExtractedText, text);
+            var diffLines = _differ.GetDiffLines(existingRecord.ExtractedText, text);
 
             summary.ChangedForms.Add(new ChangedForm
             {
                 FileName = scrapedPdf.FileName,
                 FullLink = scrapedPdf.FullLink,
                 FormName = formName,
-                OldHash = existingSnapshot.Hash,
+                OldHash = existingRecord.Hash,
                 NewHash = hash,
-                OldText = existingSnapshot.ExtractedText,
+                OldText = existingRecord.ExtractedText,
                 NewText = text,
                 Diff = diffLines,
-                OldPdfPath = existingSnapshot.LatestPdfPath,
+                OldPdfPath = existingRecord.LatestPdfPath,
                 NewPdfPath = newPdfPath
             });
         }

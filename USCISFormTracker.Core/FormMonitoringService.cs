@@ -38,20 +38,8 @@ public class FormMonitoringService : IFormMonitoringService
             var existingRecords = await _repository.GetAllFormRecordsAsync();
             _logger.LogInformation("Found {Count} existing form records in database", existingRecords.Count);
 
-            // Convert database records to snapshots for Core
-            var snapshots = existingRecords.Select(r => new FormSnapshot
-            {
-                FileName = r.FileName,
-                FullLink = r.FullLink,
-                FormName = r.FormName,
-                Hash = r.Hash,
-                ExtractedText = r.ExtractedText,
-                LatestPdfPath = r.LatestPdfPath
-            }).ToList();
-
             // Call comparison service to perform the actual comparison
-            var httpClient = _httpClientFactory.CreateClient();
-            var summary = await _comparisonService.CompareFormsAsync(snapshots, httpClient);
+            var summary = await _comparisonService.CompareFormsAsync(existingRecords);
 
             _logger.LogInformation(
                 "Comparison complete: {Added} added, {Changed} changed, {Deleted} deleted",
