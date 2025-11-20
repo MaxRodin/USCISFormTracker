@@ -17,10 +17,8 @@ public class FormChangeFormatter : IFormChangeFormatter
         // Basic info
         sb.AppendLine("<div style=\"margin-bottom: 20px;\">");
         sb.AppendLine($"<p><strong>Form:</strong> {HtmlEncode(change.FormName)}</p>");
-        sb.AppendLine($"<p><strong>File:</strong> <a href=\"{HtmlEncode(change.FullLink)}\">{HtmlEncode(change.FileName)}</a></p>");
+        sb.AppendLine($"<p><strong>File:</strong> <a href=\"{HtmlEncode(change.FullLink)}\" target=\"_blank\">{HtmlEncode(change.FullLink)}</a></p>");
         sb.AppendLine($"<p><strong>Detected:</strong> {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC</p>");
-        sb.AppendLine($"<p><strong>Old Hash:</strong> <code>{HtmlEncode(change.OldHash)}</code></p>");
-        sb.AppendLine($"<p><strong>New Hash:</strong> <code>{HtmlEncode(change.NewHash)}</code></p>");
         sb.AppendLine("</div>");
 
         sb.AppendLine("<hr>");
@@ -33,7 +31,7 @@ public class FormChangeFormatter : IFormChangeFormatter
         if (totalLines > 0)
         {
             sb.AppendLine("<h3>Changes</h3>");
-            sb.AppendLine("<div style=\"font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 15px; border-radius: 5px;\">");
+            sb.AppendLine("<div style=\"font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Consolas', 'Courier New', monospace; font-size: 13px; background: #f5f5f5; padding: 15px; border-radius: 5px; line-height: 1.6;\">");
 
             if (diffLines.AddedLines?.Count > 0)
             {
@@ -87,11 +85,8 @@ public class FormChangeFormatter : IFormChangeFormatter
 
         // Basic info
         sb.AppendLine($"Form: {change.FormName}");
-        sb.AppendLine($"File: {change.FileName}");
-        sb.AppendLine($"URL: {change.FullLink}");
+        sb.AppendLine($"File: {change.FullLink}");
         sb.AppendLine($"Detected: {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC");
-        sb.AppendLine($"Old Hash: {change.OldHash}");
-        sb.AppendLine($"New Hash: {change.NewHash}");
         sb.AppendLine();
 
         // Diff section
