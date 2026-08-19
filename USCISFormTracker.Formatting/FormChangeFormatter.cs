@@ -17,7 +17,7 @@ public class FormChangeFormatter : IFormChangeFormatter
         // Basic info
         sb.AppendLine("<div style=\"margin-bottom: 20px;\">");
         sb.AppendLine($"<p><strong>Form:</strong> {HtmlEncode(change.FormName)}</p>");
-        sb.AppendLine($"<p><strong>File:</strong> <a href=\"{HtmlEncode(change.FullLink)}\" target=\"_blank\">{HtmlEncode(change.FullLink)}</a></p>");
+        sb.AppendLine($"<p><strong>Link:</strong> <a href=\"{HtmlEncode(change.FullLink)}\" target=\"_blank\">{HtmlEncode(change.FullLink)}</a></p>");
         sb.AppendLine($"<p><strong>Detected:</strong> {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC</p>");
         sb.AppendLine("</div>");
 
@@ -85,7 +85,7 @@ public class FormChangeFormatter : IFormChangeFormatter
 
         // Basic info
         sb.AppendLine($"Form: {change.FormName}");
-        sb.AppendLine($"File: {change.FullLink}");
+        sb.AppendLine($"Link: {change.FullLink}");
         sb.AppendLine($"Detected: {change.DetectedChangeTime:yyyy-MM-dd HH:mm:ss} UTC");
         sb.AppendLine();
 

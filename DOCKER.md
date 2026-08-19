@@ -29,6 +29,13 @@ DATABASE_PASSWORD=secure_password
 RABBITMQ_PASSWORD=secure_password
 ```
 
+#### HTTPS (optional)
+
+To serve the web frontend over HTTPS, place a PFX certificate (e.g., a
+Cloudflare Origin Certificate) at `./certs/origin.pfx` — it is mounted into
+the container and port 443 is enabled automatically. Without it, the site
+serves HTTP-only on port 80.
+
 ### 3. Start Services
 
 ```bash
@@ -46,8 +53,12 @@ docker-compose logs -f emailer
 ### 4. Verify Services
 
 - **RabbitMQ Management UI**: http://localhost:15672 (guest/guest)
-- **API**: http://localhost:8080/swagger
+- **Web frontend**: http://localhost (mailing-list signup page and recent changes)
+- **Processor**: http://localhost:5000
 - **PostgreSQL**: localhost:5432
+
+Swagger UI (`/swagger`) is only available when `ASPNETCORE_ENVIRONMENT=Development`;
+docker-compose defaults to `Production`.
 
 ## Services Overview
 
@@ -61,10 +72,11 @@ docker-compose logs -f emailer
 - Sends email notifications via Mailgun
 - Handles aggregate summaries and individual changes
 
-### API
-- REST API for mailing list subscriptions
-- Endpoint to query recent changes
-- Swagger UI at `/swagger`
+### Web
+- Static mailing-list signup page (`/`)
+- `POST /mailing-list` — subscribe an email address
+- `GET /changes/recent` — recent detected form changes
+- Swagger UI at `/swagger` (Development environment only)
 
 ### PostgreSQL
 - Stores form records and change history
@@ -203,7 +215,7 @@ Subsequent runs will send individual emails for changes.
        ▲
        │
 ┌─────────────┐
-│     API     │
+│     Web     │
 └─────────────┘
 ```
 

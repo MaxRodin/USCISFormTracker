@@ -6,8 +6,9 @@ using USCISFormTracker.Processor;
 using USCISFormTracker.Processor.Jobs;
 using USCISFormTracker.Dto;
 
-// Load environment variables from .env file
-Env.Load();
+// Load environment variables from .env file (searching parent directories,
+// since `dotnet run` sets the working directory to the project directory)
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

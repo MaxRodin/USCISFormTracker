@@ -14,15 +14,23 @@ USCIS Form Change Tracker - monitors USCIS immigration forms for changes by comp
 - **IPdfReader** (ImprovedPdfPigReader): Extracts text from PDF files using PdfPig library with intelligent header/footer filtering and line break preservation
 - **IDiffer** (DiffPlexDiffer): Generates line-by-line diffs between old and new PDF text using DiffPlex library (Myers' diff algorithm)
 - **IWebPdfGetter** (UscisWebPdfGetter): Scrapes USCIS website to discover PDF form links
-- **IEmailService/IEmailSender**: Sends change notifications via Mailgun
-- **Repository layer**: Manages persistence to SQLite database using Entity Framework Core
+- **IEmailSender** (MailgunEmailSender): Sends change notifications via Mailgun
+- **Repository layer**: Manages persistence to PostgreSQL using Entity Framework Core (Npgsql)
+
+**Service topology** — three deployable services communicating over RabbitMQ (MassTransit):
+
+- `USCISFormTracker.Processor`: Worker that runs the monitoring job on a Quartz cron schedule (daily by default)
+- `USCISFormTracker.Emailer`: Consumes change events from RabbitMQ and sends Mailgun notifications
+- `USCISFormTracker.Web`: Mailing-list signup (`POST /mailing-list`) and recent changes feed (`GET /changes/recent`)
+
+Shared libraries: `Core` (business logic), `Data` (EF Core + migrations), `Dto` (message contracts), `Formatting` (diff/summary formatting for email and web).
 
 **Data flow:**
 1. IWebPdfGetter retrieves PDF links from USCIS website
 2. IPdfReader extracts text from PDFs
 3. IHasher computes hash of extracted text
 4. Compare hash with stored PdfFormRecord
-5. If different: IDiffer generates diff, store PdfFormChange, send email via IEmailService
+5. If different: IDiffer generates diff, store PdfFormChange, publish change event to RabbitMQ (Emailer consumes it and sends the notification)
 6. Update PdfFormRecord with new hash
 
 **IWebPdfGetter Implementation Details:**
@@ -61,11 +69,10 @@ Example HTML snippet from all-forms page:
   - `OldHash`, `NewHash`: Hashes before and after change
   - `DiffLinesSerialized`: JSON-serialized DiffLines
   - `DetectedChangeTime`: When change was detected
-- `PdfLinkInfo`: DTO returned by IWebPdfGetter
+- `ScrapedPdf`: DTO returned by IWebPdfGetter
   - `FileName`: PDF filename (e.g., "i-751.pdf")
   - `FullLink`: Complete URL to the PDF
 - `DiffLines`: Contains added/deleted/modified lines from diff
-- `ScrapedPdf`: (purpose TBD)
 
 ## Development
 
@@ -74,9 +81,14 @@ Example HTML snippet from all-forms page:
 dotnet build
 ```
 
-**Run (once console app is created):**
+**Run:**
 ```bash
-dotnet run --project USCISFormTracker.ConsoleApp
+# Infrastructure (PostgreSQL + RabbitMQ)
+docker-compose up -d postgres rabbitmq
+
+dotnet run --project USCISFormTracker.Processor
+dotnet run --project USCISFormTracker.Emailer
+dotnet run --project USCISFormTracker.Web
 ```
 
 **Test:**
@@ -84,7 +96,7 @@ dotnet run --project USCISFormTracker.ConsoleApp
 dotnet test
 ```
 
-**Execution model:** Console application designed to be scheduled externally (cron/Task Scheduler), not a continuously running service.
+**Execution model:** Long-running services (deployed via docker-compose — see DOCKER.md). The Processor triggers monitoring runs internally on a Quartz cron schedule.
 
 ## Testing
 
@@ -149,6 +161,6 @@ This produces cleaner diffs with better semantic meaning.
 
 ## Configuration
 
-Email configuration and sensitive data should be stored in `appsettings.json` (gitignored except template).
+Committed `appsettings.json` files contain placeholders and non-sensitive defaults only. Real credentials (Mailgun API key, database/RabbitMQ passwords) go in `.env` (loaded via DotNetEnv, template in `.env.example`) or environment variables — never in committed files. `.env` and `appsettings.*.json` variants are gitignored.
 
-Downloaded PDFs are stored in `forms/` directory (gitignored).
+Downloaded PDFs are stored in the `pdfs/` directory (gitignored).

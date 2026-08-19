@@ -1,0 +1,18 @@
+# Matches HTTP_PORT=5080 for non-root local runs (defaults to 80 in Docker)
+@host = http://localhost:5080
+
+# Subscribe an email address to the mailing list
+POST {{host}}/mailing-list
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+###
+
+# Get the most recent detected form changes
+GET {{host}}/changes/recent
+Accept: application/json
+
+###

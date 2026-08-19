@@ -7,22 +7,30 @@ using USCISFormTracker.Formatting;
 using DotNetEnv;
 using System.ComponentModel.DataAnnotations;
 
-// Load environment variables from .env file
-Env.Load();
+// Load environment variables from .env file (searching parent directories,
+// since `dotnet run` sets the working directory to the project directory)
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel for HTTPS with Cloudflare Origin Certificate
+// Configure Kestrel. HTTPS is enabled only when a certificate is present
+// (e.g., a Cloudflare Origin Certificate mounted at /app/certs in Docker),
+// so the app runs HTTP-only out of the box.
+var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var configuredPort) ? configuredPort : 80;
+var httpsCertPath = builder.Configuration["HTTPS_CERT_PATH"] ?? "/app/certs/origin.pfx";
+var useHttps = File.Exists(httpsCertPath);
+
 builder.WebHost.ConfigureKestrel(options =>
 {
-    // HTTP (optional - can redirect to HTTPS)
-    options.ListenAnyIP(80);
+    options.ListenAnyIP(httpPort);
 
-    // HTTPS with Cloudflare Origin Certificate (using PFX format)
-    options.ListenAnyIP(443, listenOptions =>
+    if (useHttps)
     {
-        listenOptions.UseHttps("/app/certs/origin.pfx");
-    });
+        options.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps(httpsCertPath);
+        });
+    }
 });
 
 // Add services to the container.
@@ -71,7 +79,14 @@ if (app.Environment.IsDevelopment())
 }
 
 // Redirect HTTP to HTTPS (Full mode with origin certificate)
-app.UseHttpsRedirection();
+if (useHttps)
+{
+    app.UseHttpsRedirection();
+}
+else
+{
+    app.Logger.LogInformation("No HTTPS certificate found at {CertPath}; serving HTTP only on port {Port}", httpsCertPath, httpPort);
+}
 
 // Serve static files (index.html, images, etc.)
 app.UseDefaultFiles(); // Serves index.html by default
