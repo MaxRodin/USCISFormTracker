@@ -11,6 +11,11 @@ public class FormRunSummary
     public DateTime RunTime { get; set; }
     public int TotalFormsOnWebsite { get; set; }
     public int TotalProcessed { get; set; }
+
+    /// <summary>
+    /// True when at least one form was added, changed, or deleted in this run
+    /// </summary>
+    public bool HasChanges => AddedForms.Count > 0 || ChangedForms.Count > 0 || DeletedForms.Count > 0;
 }
 
 /// <summary>

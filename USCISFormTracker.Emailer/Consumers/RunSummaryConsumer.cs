@@ -33,6 +33,12 @@ public class RunSummaryConsumer : IConsumer<RunSummaryMessage>
             message.ChangedFormsCount,
             message.DeletedFormsCount);
 
+        if (!message.HasChanges)
+        {
+            _logger.LogInformation("Run summary contains no changes; no email sent");
+            return;
+        }
+
         var mailingListAddress = _configuration["Mailgun:MailingListAddress"]
             ?? throw new InvalidOperationException("Mailgun:MailingListAddress not configured");
 

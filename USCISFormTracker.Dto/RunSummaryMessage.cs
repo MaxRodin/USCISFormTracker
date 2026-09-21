@@ -13,6 +13,11 @@ public class RunSummaryMessage
     public required List<FormSummaryItem> NewForms { get; set; }
     public required List<FormSummaryItem> ChangedForms { get; set; }
     public required List<FormSummaryItem> DeletedForms { get; set; }
+
+    /// <summary>
+    /// True when at least one form was added, changed, or deleted in this run
+    /// </summary>
+    public bool HasChanges => NewFormsCount > 0 || ChangedFormsCount > 0 || DeletedFormsCount > 0;
 }
 
 /// <summary>

@@ -44,8 +44,17 @@ public class FormMonitorJob : IJob
             // Execute monitoring (orchestration handled by Core)
             var summary = await _monitoringService.MonitorFormsAsync();
 
-            // Publish results
-            await PublishAggregateSummaryAsync(summary);
+            // Publish results only when something actually changed; no email on quiet days
+            if (summary.HasChanges)
+            {
+                await PublishAggregateSummaryAsync(summary);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "No form changes detected ({Total} forms checked); skipping summary publish",
+                    summary.TotalFormsOnWebsite);
+            }
 
             _logger.LogInformation("Form monitoring completed successfully at {Timestamp} UTC", DateTime.UtcNow);
         }
