@@ -122,16 +122,29 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./certs:/app/certs:ro  # Mount certificates (read-only)
+    # No host ports: the site is reached through the Cloudflare Tunnel below.
+    # For local development copy docker-compose.override.example.yml to
+    # docker-compose.override.yml, which publishes port 80.
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - uscis-network
+
+  # Cloudflare Tunnel (exposes the web service via Cloudflare without opening inbound ports)
+  # Configure the public hostname -> http://web:80 in the Cloudflare Zero Trust dashboard.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: uscisft-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      # Required in production; left optional so docker-compose.override.yml can disable the service.
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - web
     restart: unless-stopped
     networks:
       - uscis-network

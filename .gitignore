@@ -108,6 +108,9 @@ appsettings.*.json
 # Environment variables (contains database credentials)
 .env
 
+# Local docker compose override (see docker-compose.override.example.yml)
+docker-compose.override.yml
+
 # SSL/TLS Certificates (sensitive)
 certs/
 *.pem

@@ -29,12 +29,43 @@ DATABASE_PASSWORD=secure_password
 RABBITMQ_PASSWORD=secure_password
 ```
 
-#### HTTPS (optional)
+#### HTTPS
 
-To serve the web frontend over HTTPS, place a PFX certificate (e.g., a
-Cloudflare Origin Certificate) at `./certs/origin.pfx` — it is mounted into
-the container and port 443 is enabled automatically. Without it, the site
-serves HTTP-only on port 80.
+TLS is terminated by Cloudflare. The web container serves plain HTTP on port 80
+to the Cloudflare Tunnel over the internal Docker network, so no certificate is
+needed and no host ports are published in production.
+
+If you run without the tunnel (Cloudflare proxy pointed at a public IP), use
+Full (strict) SSL mode and place a PFX Cloudflare Origin Certificate at
+`/app/certs/origin.pfx` inside the container (e.g. mount `./certs`) and
+publish ports 80 and 443 on the `web` service.
+
+#### Cloudflare Tunnel
+
+The `cloudflared` service exposes the web frontend through a Cloudflare
+Tunnel, so no inbound ports need to be opened on the host. Create a tunnel in
+Cloudflare Zero Trust (Networks -> Tunnels), add a public hostname that routes
+to `http://web:80`, and put the tunnel token in `.env`:
+
+```bash
+CLOUDFLARE_TUNNEL_TOKEN=your_tunnel_token_here
+```
+
+If the token is missing, the `cloudflared` container will exit on start.
+
+#### Local development
+
+For local development copy the example override file. Compose merges
+`docker-compose.override.yml` automatically on `docker compose up`. It
+publishes the web frontend on http://localhost and disables the Cloudflare
+Tunnel so no token is required:
+
+```bash
+cp docker-compose.override.example.yml docker-compose.override.yml
+docker compose up -d
+```
+
+The override file is gitignored, so production hosts run the base file only.
 
 ### 3. Start Services
 
@@ -53,7 +84,7 @@ docker-compose logs -f emailer
 ### 4. Verify Services
 
 - **RabbitMQ Management UI**: http://localhost:15672 (guest/guest)
-- **Web frontend**: http://localhost (mailing-list signup page and recent changes)
+- **Web frontend**: http://localhost (mailing-list signup page and recent changes; only published with `docker-compose.override.yml`)
 - **Processor**: http://localhost:5000
 - **PostgreSQL**: localhost:5432
 
