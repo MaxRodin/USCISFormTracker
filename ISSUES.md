@@ -206,7 +206,7 @@ _logger.LogError("Error processing form {FileName}: {ErrorMessage}", fileName, e
 ### Issue #13: Test Coverage Gaps
 **Status**: Open
 **Priority**: Low
-**Location**: `USCISFormTracker.Tests/`
+**Location**: `tests/USCISFormTracker.Tests/`
 
 **Current Coverage**: 27 tests covering:
 - PDF text extraction ✓

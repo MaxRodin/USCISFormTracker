@@ -98,7 +98,7 @@ forms/
 pdfs/
 *.pdf
 # Test fixtures must stay tracked despite the blanket *.pdf rule
-!USCISFormTracker.Tests/TestData/Pdf/*.pdf
+!tests/USCISFormTracker.Tests/TestData/Pdf/*.pdf
 
 # Email configuration (may contain sensitive data)
 appsettings.Development.json

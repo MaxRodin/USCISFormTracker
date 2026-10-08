@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
-    <ProjectReference Include="..\USCISFormTracker.Processor\USCISFormTracker.Processor.csproj" />
-    <ProjectReference Include="..\USCISFormTracker.Data\USCISFormTracker.Data.csproj" />
+    <ProjectReference Include="..\..\src\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
+    <ProjectReference Include="..\..\src\USCISFormTracker.Processor\USCISFormTracker.Processor.csproj" />
+    <ProjectReference Include="..\..\src\USCISFormTracker.Data\USCISFormTracker.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

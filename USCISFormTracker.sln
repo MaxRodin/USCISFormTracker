@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Core", "src\USCISFormTracker.Core\USCISFormTracker.Core.csproj", "{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "src\USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "tests\USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Emailer", "src\USCISFormTracker.Emailer\USCISFormTracker.Emailer.csproj", "{E4DDF47E-5F3B-4623-8F2B-EA1CD788A9BE}"
 EndProject

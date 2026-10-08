@@ -8,7 +8,7 @@ USCIS Form Change Tracker: scrapes the USCIS all-forms page, extracts text from 
 
 ## Architecture
 
-Three deployable services under `src/`, communicating over RabbitMQ (MassTransit) and backed by PostgreSQL (EF Core / Npgsql):
+Three deployable services under `src/` (tests under `tests/`), communicating over RabbitMQ (MassTransit) and backed by PostgreSQL (EF Core / Npgsql):
 
 - `USCISFormTracker.Processor`: worker that runs the monitoring job on a Quartz cron schedule (daily by default)
 - `USCISFormTracker.Emailer`: consumes change events and sends Mailgun notifications
@@ -46,7 +46,7 @@ Full stack via Docker: `cp .env.example .env`, then `docker compose up -d`. For 
 
 ## Testing
 
-xUnit + Moq in `src/USCISFormTracker.Tests`. Fixtures live in `TestData/Html` (scraped USCIS pages) and `TestData/Pdf` (form PDFs plus the `PdfTest_First/Second` pair used for diff tests). `TestHelpers/MockHttpMessageHandler` stubs HTTP for scraping and end-to-end tests. Several tests (`PdfInspectorTests`, `PdfTextAnalysisTests`, `DiffInspectionTests`) exist to inspect extraction quality rather than assert behavior.
+xUnit + Moq in `tests/USCISFormTracker.Tests`. Fixtures live in `TestData/Html` (scraped USCIS pages) and `TestData/Pdf` (form PDFs plus the `PdfTest_First/Second` pair used for diff tests). `TestHelpers/MockHttpMessageHandler` stubs HTTP for scraping and end-to-end tests. Several tests (`PdfInspectorTests`, `PdfTextAnalysisTests`, `DiffInspectionTests`) exist to inspect extraction quality rather than assert behavior.
 
 ## Configuration
 
