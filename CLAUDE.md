@@ -25,7 +25,7 @@ Core is interface-based. Key abstractions and their implementations:
 | `IHasher` | `Sha256Hasher` | Hashes extracted text |
 | `IDiffer` | `DiffPlexDiffer` | Line-by-line diff (DiffPlex / Myers) producing `DiffLines` |
 | `IFormRepository` | in `Data` | Persists `PdfFormRecord` (current hash per form) and `PdfFormChange` (diff + old/new hash per detected change) |
-| `IPdfFileManager` | `PdfFileManager` | Stores downloaded PDFs under `pdfs/{form}/{form}_{timestamp}.pdf`, pruning old versions |
+| `IPdfFileManager` | `PdfFileManager` | Stores downloaded PDFs under `{PdfStorage:RootDirectory}/uscis/{form}/{form}_{timestamp}.pdf` and prunes old versions. The DB stores paths relative to the root; `uscis` is a constant in `FormComparisonService` |
 
 `PdfPigReader` (raw `page.Text`) and `ImprovedPdfPigReader` (Y-position grouping with header filtering) are alternative readers kept for comparison in tests. `PdfPigLayoutPdfReader` is the one registered in `Core/ServiceExtensions.cs`; changing the reader changes every stored hash, so expect a full round of "changes" after swapping it.
 
@@ -50,4 +50,4 @@ xUnit + Moq in `tests/USCISFormTracker.Tests`. Fixtures live in `TestData/Html` 
 
 ## Configuration
 
-Committed `appsettings.json` files hold placeholders and non-sensitive defaults only. Real values (Mailgun key, database/RabbitMQ passwords, Cloudflare tunnel token) go in `.env` (template in `.env.example`, loaded via DotNetEnv) or environment variables. `.env`, `appsettings.*.json` variants, `docker-compose.override.yml`, and `pdfs/` are gitignored.
+Committed `appsettings.json` files hold placeholders and non-sensitive defaults only. Real values (Mailgun key, database/RabbitMQ passwords, Cloudflare tunnel token) go in `.env` (template in `.env.example`, loaded via DotNetEnv) or environment variables. `.env`, `appsettings.*.json` variants, `docker-compose.override.yml`, and the PDF storage root `forms/` are gitignored.

@@ -14,6 +14,9 @@ public class FormComparisonService : IFormComparisonService
     private readonly IHasher _hasher;
     private readonly IDiffer _differ;
     private readonly IPdfFileManager _pdfFileManager;
+
+    /// <summary>Source subdirectory under the PDF storage root where USCIS forms are kept.</summary>
+    private const string PdfStorageBaseDir = "uscis";
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<FormComparisonService> _logger;
 
@@ -129,8 +132,8 @@ public class FormComparisonService : IFormComparisonService
             string? pdfPath = null;
             try
             {
-                pdfPath = await _pdfFileManager.SavePdfAsync(formName, pdfBytes, summary.RunTime);
-                await _pdfFileManager.CleanupOldVersionsAsync(formName);
+                pdfPath = await _pdfFileManager.SavePdfAsync(PdfStorageBaseDir, formName, pdfBytes, summary.RunTime);
+                await _pdfFileManager.CleanupOldVersionsAsync(PdfStorageBaseDir, formName);
             }
             catch (Exception ex)
             {
@@ -157,8 +160,8 @@ public class FormComparisonService : IFormComparisonService
             string? newPdfPath = null;
             try
             {
-                newPdfPath = await _pdfFileManager.SavePdfAsync(formName, pdfBytes, summary.RunTime);
-                await _pdfFileManager.CleanupOldVersionsAsync(formName);
+                newPdfPath = await _pdfFileManager.SavePdfAsync(PdfStorageBaseDir, formName, pdfBytes, summary.RunTime);
+                await _pdfFileManager.CleanupOldVersionsAsync(PdfStorageBaseDir, formName);
             }
             catch (Exception ex)
             {

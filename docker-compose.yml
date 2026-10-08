@@ -60,6 +60,8 @@ services:
       UscisConfig__FormsPageUrl: ${USCIS_FORMS_PAGE_URL:-https://www.uscis.gov/forms/all-forms}
       # Quartz Schedule (run every day at 2:00 AM)
       Quartz__CronSchedule: ${QUARTZ_CRON_SCHEDULE:-0 0 2 * * ?}
+      # PDF storage root (persisted in the forms_data volume); files land under /app/forms/uscis/<form>/
+      PdfStorage__RootDirectory: /app/forms
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
     ports:

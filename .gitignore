@@ -93,7 +93,7 @@ Desktop.ini
 .DS_Store
 
 # Application specific
-# Downloaded PDFs and form data
+# Downloaded PDFs (forms/ is the storage root; pdfs/ is the pre-2026-10 location)
 forms/
 pdfs/
 *.pdf

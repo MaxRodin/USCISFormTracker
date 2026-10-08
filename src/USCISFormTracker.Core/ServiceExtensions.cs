@@ -25,9 +25,9 @@ public static class ServiceExtensions
         // PDF File Manager
         services.AddScoped<IPdfFileManager>(sp =>
         {
-            var baseDirectory = configuration["PdfStorage:BaseDirectory"] ?? "pdfs";
+            var rootDirectory = configuration["PdfStorage:RootDirectory"] ?? "forms";
             var logger = sp.GetRequiredService<ILogger<PdfFileManager>>();
-            return new PdfFileManager(baseDirectory, logger);
+            return new PdfFileManager(rootDirectory, logger);
         });
 
         // Web PDF Getter

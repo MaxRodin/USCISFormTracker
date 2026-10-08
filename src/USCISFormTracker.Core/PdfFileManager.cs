@@ -4,17 +4,19 @@ namespace USCISFormTracker.Core;
 
 public class PdfFileManager : IPdfFileManager
 {
-    private readonly string _baseDirectory;
+    private readonly string _rootDirectory;
     private readonly ILogger<PdfFileManager> _logger;
 
-    public PdfFileManager(string baseDirectory, ILogger<PdfFileManager> logger)
+    public PdfFileManager(string rootDirectory, ILogger<PdfFileManager> logger)
     {
-        _baseDirectory = baseDirectory ?? throw new ArgumentNullException(nameof(baseDirectory));
+        _rootDirectory = rootDirectory ?? throw new ArgumentNullException(nameof(rootDirectory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<string> SavePdfAsync(string formName, byte[] pdfBytes, DateTime timestamp)
+    public async Task<string> SavePdfAsync(string baseDir, string formName, byte[] pdfBytes, DateTime timestamp)
     {
+        if (string.IsNullOrWhiteSpace(baseDir))
+            throw new ArgumentException("Base directory cannot be null or empty", nameof(baseDir));
         if (string.IsNullOrWhiteSpace(formName))
             throw new ArgumentException("Form name cannot be null or empty", nameof(formName));
         if (pdfBytes == null || pdfBytes.Length == 0)
@@ -26,10 +28,9 @@ public class PdfFileManager : IPdfFileManager
         // Format timestamp as ISO 8601 with file-safe characters (milliseconds precision)
         var timestampString = timestamp.ToUniversalTime().ToString("yyyy-MM-ddTHH-mm-ss-fffZ");
 
-        // Build path: pdfs/{formname}/{formname}_{timestamp}.pdf
-        var formDirectory = Path.Combine(_baseDirectory, sanitizedFormName);
+        // Build path relative to the root: {baseDir}/{formname}/{formname}_{timestamp}.pdf
         var fileName = $"{sanitizedFormName}_{timestampString}.pdf";
-        var relativePath = Path.Combine(_baseDirectory, sanitizedFormName, fileName);
+        var relativePath = Path.Combine(baseDir, sanitizedFormName, fileName);
         var fullPath = GetFullPath(relativePath);
 
         try
@@ -44,46 +45,34 @@ public class PdfFileManager : IPdfFileManager
             // Save PDF to disk
             await File.WriteAllBytesAsync(fullPath, pdfBytes);
 
-            _logger.LogInformation("Saved PDF to {Path} ({Size} bytes)", relativePath, pdfBytes.Length);
+            _logger.LogInformation("Saved PDF to {Path} ({Size} bytes)", fullPath, pdfBytes.Length);
 
             return relativePath;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save PDF for form {FormName} to {Path}", formName, relativePath);
+            _logger.LogError(ex, "Failed to save PDF for form {FormName} to {Path}", formName, fullPath);
             throw;
         }
     }
 
-    public string GetFullPath(string relativePath)
+    public Task CleanupOldVersionsAsync(string baseDir, string formName, int keepCount = 10)
     {
-        if (string.IsNullOrWhiteSpace(relativePath))
-            throw new ArgumentException("Relative path cannot be null or empty", nameof(relativePath));
-
-        // If path is already absolute, return as-is
-        if (Path.IsPathRooted(relativePath))
-            return relativePath;
-
-        // Combine with current directory to get absolute path
-        return Path.GetFullPath(relativePath);
-    }
-
-    public Task CleanupOldVersionsAsync(string formName, int keepCount = 10)
-    {
+        if (string.IsNullOrWhiteSpace(baseDir))
+            throw new ArgumentException("Base directory cannot be null or empty", nameof(baseDir));
         if (string.IsNullOrWhiteSpace(formName))
             throw new ArgumentException("Form name cannot be null or empty", nameof(formName));
         if (keepCount < 1)
             throw new ArgumentException("Keep count must be at least 1", nameof(keepCount));
 
         var sanitizedFormName = Path.GetFileNameWithoutExtension(formName);
-        var formDirectory = Path.Combine(_baseDirectory, sanitizedFormName);
-        var fullDirectoryPath = GetFullPath(formDirectory);
+        var fullDirectoryPath = GetFullPath(Path.Combine(baseDir, sanitizedFormName));
 
         try
         {
             if (!Directory.Exists(fullDirectoryPath))
             {
-                _logger.LogDebug("Directory {Directory} does not exist, skipping cleanup", formDirectory);
+                _logger.LogDebug("Directory {Directory} does not exist, skipping cleanup", fullDirectoryPath);
                 return Task.CompletedTask;
             }
 
@@ -125,5 +114,16 @@ public class PdfFileManager : IPdfFileManager
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Resolves a root-relative path to an absolute path on disk.
+    /// </summary>
+    private string GetFullPath(string relativePath)
+    {
+        if (Path.IsPathRooted(relativePath))
+            return relativePath;
+
+        return Path.GetFullPath(Path.Combine(_rootDirectory, relativePath));
     }
 }

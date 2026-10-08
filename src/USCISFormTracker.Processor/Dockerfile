@@ -21,7 +21,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Create forms directory for downloaded PDFs
+# Root directory for downloaded PDFs (mounted as a volume by docker-compose)
 RUN mkdir -p /app/forms
 
 ENTRYPOINT ["dotnet", "USCISFormTracker.Processor.dll"]

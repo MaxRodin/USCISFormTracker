@@ -49,6 +49,7 @@ This starts PostgreSQL, RabbitMQ, the three services, and a `cloudflared` contai
 - `docker compose restart processor` triggers a check immediately instead of waiting for the schedule.
 - RabbitMQ management UI is at http://localhost:15672. Swagger UI on the web service is only enabled when `ASPNETCORE_ENVIRONMENT=Development` (compose defaults to `Production`).
 - On the first run the Processor records every form and sends a single summary email; later runs send one email per changed form.
+- Downloaded PDFs are kept in the `forms_data` volume, mounted at `/app/forms` in the processor container. Files land under `/app/forms/uscis/<form>/`, and the database stores paths relative to that root. If you have PDFs from an older local run in `pdfs/<form>/`, move them to `forms/uscis/<form>/` by hand.
 - Back up the database with `docker compose exec postgres pg_dump -U postgres uscis_forms > backup.sql`.
 
 ## Local Development
