@@ -12,23 +12,12 @@ Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel. HTTPS is enabled only when a certificate file exists
-// at the configured path; otherwise the app serves HTTP only.
-var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var configuredPort) ? configuredPort : 80;
-var httpsCertPath = builder.Configuration["HTTPS_CERT_PATH"] ?? "/app/certs/origin.pfx";
-var useHttps = File.Exists(httpsCertPath);
+// Configure Kestrel. The app serves plain HTTP only; TLS is terminated upstream.
+var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var configuredPort) ? configuredPort : 8080;
 
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(httpPort);
-
-    if (useHttps)
-    {
-        options.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps(httpsCertPath);
-        });
-    }
 });
 
 // Add services to the container.
@@ -60,15 +49,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Redirect HTTP to HTTPS when a certificate is in use
-if (useHttps)
-{
-    app.UseHttpsRedirection();
-}
-else
-{
-    app.Logger.LogInformation("No HTTPS certificate found at {CertPath}; serving HTTP only on port {Port}", httpsCertPath, httpPort);
-}
+app.Logger.LogInformation("Serving HTTP on port {Port}", httpPort);
 
 // Serve static files (index.html, images, etc.)
 app.UseDefaultFiles(); // Serves index.html by default

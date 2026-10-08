@@ -40,7 +40,7 @@ This starts PostgreSQL, the two services, and a `cloudflared` container.
 
 **Local use.** Copy `docker-compose.override.example.yml` to `docker-compose.override.yml` before `docker compose up`. The override disables the Cloudflare Tunnel so no token is needed; the site is reached at http://127.0.0.1:8080. The file is gitignored, so production hosts run the base compose file only.
 
-**Production.** TLS is terminated by Cloudflare. The web container serves plain HTTP on port 80 to the Cloudflare Tunnel over the internal Docker network and is published on the host at http://127.0.0.1:8080 only. Create a tunnel in Cloudflare Zero Trust, route its public hostname to `http://web:80`, and set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`; without the token the `cloudflared` container exits on start. If you run without the tunnel, mount a PFX origin certificate at `/app/certs/origin.pfx` and publish ports 80 and 443 on the `web` service instead.
+**Production.** TLS is terminated by Cloudflare. The web container serves plain HTTP on port 8080 to the Cloudflare Tunnel over the internal Docker network and is published on the host at http://127.0.0.1:8080 only. Create a tunnel in Cloudflare Zero Trust, route its public hostname to `http://web:8080`, and set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`; without the token the `cloudflared` container exits on start.
 
 **Useful knobs.**
 
@@ -61,12 +61,10 @@ dotnet test
 
 # Run individual services
 dotnet run --project src/USCISFormTracker.Processor
-HTTP_PORT=5080 dotnet run --project src/USCISFormTracker.Web  # default port 80 needs root on Linux
+HTTP_PORT=5080 dotnet run --project src/USCISFormTracker.Web  # defaults to port 8080
 ```
 
-The web service serves HTTP-only unless a PFX certificate exists at the path given
-by `HTTPS_CERT_PATH` (default `/app/certs/origin.pfx`), in which case HTTPS on
-port 443 is enabled automatically.
+The web service serves plain HTTP only; TLS is terminated by Cloudflare.
 
 Configuration comes from each service's `appsettings.json` (committed, placeholders only) overridden by environment variables / a local `.env` file. Never commit real credentials — `.env` and `appsettings.*.json` variants are gitignored.
 

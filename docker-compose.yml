@@ -81,7 +81,7 @@ services:
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
     ports:
-      - "127.0.0.1:8080:80"  # Only accessible from localhost
+      - "127.0.0.1:8080:8080"  # Only accessible from localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,7 +90,7 @@ services:
       - uscis-network
 
   # Cloudflare Tunnel (exposes the web service via Cloudflare without opening inbound ports)
-  # Configure the public hostname -> http://web:80 in the Cloudflare Zero Trust dashboard.
+  # Configure the public hostname -> http://web:8080 in the Cloudflare Zero Trust dashboard.
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: uscisft-cloudflared
