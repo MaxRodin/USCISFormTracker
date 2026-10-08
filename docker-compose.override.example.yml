@@ -1,13 +1,10 @@
-# Local development override: publishes the web frontend on http://localhost
-# and disables the Cloudflare Tunnel (no CLOUDFLARE_TUNNEL_TOKEN needed).
-#
-# Copy to docker-compose.override.yml (gitignored); `docker compose up` merges
-# it automatically. Production hosts should not have an override file.
+# Local development override: publishes the web frontend on http://localhost:9009
+# and disables the Cloudflare Tunnel.
 #
 services:
   web:
     ports:
-      - "80:80"
+      - "9009:80"
 
   cloudflared:
     # Assigning a profile removes cloudflared from the default `up`.

@@ -40,7 +40,13 @@ dotnet run --project src/USCISFormTracker.Processor
 HTTP_PORT=5080 dotnet run --project src/USCISFormTracker.Web
 ```
 
-Full stack via Docker: `cp .env.example .env`, then `docker compose up -d`. For local Docker runs also copy `docker-compose.override.example.yml` to `docker-compose.override.yml`; it publishes the web UI on localhost and disables the Cloudflare Tunnel. See README.md for details.
+Full stack via Docker: `cp .env.example .env`, then `docker compose up -d`. `docker-compose.yml` is the production file: the web container publishes no host ports and is reached through the Cloudflare Tunnel (`cloudflared`), which needs `CLOUDFLARE_TUNNEL_TOKEN` in `.env`.
+
+For local Docker runs copy `docker-compose.override.example.yml` to `docker-compose.override.yml` (gitignored); `docker compose up` merges it automatically. The override publishes the web UI on http://localhost:9009 and moves `cloudflared` into the `tunnel` profile so it is skipped unless you pass `--profile tunnel`. Production hosts must not have an override file.
+
+## Comments
+
+Comments describe only the file they are in. Do not reference other files, overrides, or workflows from a comment (for example, `docker-compose.yml` must not mention the override file). Cross-file workflow guidance lives in this file.
 
 ## Testing
 

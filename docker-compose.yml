@@ -81,8 +81,6 @@ services:
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
     # No host ports: the site is reached through the Cloudflare Tunnel below.
-    # For local development copy docker-compose.override.example.yml to
-    # docker-compose.override.yml, which publishes port 80.
     depends_on:
       postgres:
         condition: service_healthy
@@ -97,7 +95,7 @@ services:
     container_name: uscisft-cloudflared
     command: tunnel --no-autoupdate run
     environment:
-      # Required in production; left optional so docker-compose.override.yml can disable the service.
+      # Required in production.
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
     depends_on:
       - web
