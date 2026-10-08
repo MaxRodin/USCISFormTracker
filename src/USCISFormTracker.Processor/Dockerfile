@@ -1,16 +1,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /repo
 
 # Copy csproj files and restore dependencies
-COPY ["USCISFormTracker.Processor/USCISFormTracker.Processor.csproj", "USCISFormTracker.Processor/"]
-COPY ["USCISFormTracker.Core/USCISFormTracker.Core.csproj", "USCISFormTracker.Core/"]
-COPY ["USCISFormTracker.Data/USCISFormTracker.Data.csproj", "USCISFormTracker.Data/"]
-COPY ["USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "USCISFormTracker.Dto/"]
-RUN dotnet restore "USCISFormTracker.Processor/USCISFormTracker.Processor.csproj"
+COPY ["src/USCISFormTracker.Processor/USCISFormTracker.Processor.csproj", "src/USCISFormTracker.Processor/"]
+COPY ["src/USCISFormTracker.Core/USCISFormTracker.Core.csproj", "src/USCISFormTracker.Core/"]
+COPY ["src/USCISFormTracker.Data/USCISFormTracker.Data.csproj", "src/USCISFormTracker.Data/"]
+COPY ["src/USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "src/USCISFormTracker.Dto/"]
+RUN dotnet restore "src/USCISFormTracker.Processor/USCISFormTracker.Processor.csproj"
 
 # Copy everything else and build
 COPY . .
-WORKDIR "/src/USCISFormTracker.Processor"
+WORKDIR "/repo/src/USCISFormTracker.Processor"
 RUN dotnet build "USCISFormTracker.Processor.csproj" -c Release -o /app/build
 
 FROM build AS publish
