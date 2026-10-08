@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Core", "USCISFormTracker.Core\USCISFormTracker.Core.csproj", "{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Core", "src\USCISFormTracker.Core\USCISFormTracker.Core.csproj", "{C1FB91F5-0BFE-48EC-A2C1-A2941BBACC4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Tests", "src\USCISFormTracker.Tests\USCISFormTracker.Tests.csproj", "{E4364DE3-4225-4ECD-AD0B-8223DE9368A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Emailer", "USCISFormTracker.Emailer\USCISFormTracker.Emailer.csproj", "{E4DDF47E-5F3B-4623-8F2B-EA1CD788A9BE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Emailer", "src\USCISFormTracker.Emailer\USCISFormTracker.Emailer.csproj", "{E4DDF47E-5F3B-4623-8F2B-EA1CD788A9BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Dto", "USCISFormTracker.Dto\USCISFormTracker.Dto.csproj", "{3D73AF55-642E-451F-AFAE-D87C54D22D0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Dto", "src\USCISFormTracker.Dto\USCISFormTracker.Dto.csproj", "{3D73AF55-642E-451F-AFAE-D87C54D22D0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Processor", "USCISFormTracker.Processor\USCISFormTracker.Processor.csproj", "{8B4A02BA-5177-4855-945D-E6311FD40811}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Processor", "src\USCISFormTracker.Processor\USCISFormTracker.Processor.csproj", "{8B4A02BA-5177-4855-945D-E6311FD40811}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Data", "USCISFormTracker.Data\USCISFormTracker.Data.csproj", "{CD2D9FEB-E1EC-4BB3-AA93-2E83D2B17017}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Data", "src\USCISFormTracker.Data\USCISFormTracker.Data.csproj", "{CD2D9FEB-E1EC-4BB3-AA93-2E83D2B17017}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Web", "USCISFormTracker.Web\USCISFormTracker.Web.csproj", "{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Web", "src\USCISFormTracker.Web\USCISFormTracker.Web.csproj", "{FD794CDB-A9B0-403F-9E85-2C7F34F6303B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Formatting", "USCISFormTracker.Formatting\USCISFormTracker.Formatting.csproj", "{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USCISFormTracker.Formatting", "src\USCISFormTracker.Formatting\USCISFormTracker.Formatting.csproj", "{0B6DF5E6-8288-4DF4-86C4-519DC1ABAF4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -43,7 +43,7 @@ services:
   processor:
     build:
       context: .
-      dockerfile: USCISFormTracker.Processor/Dockerfile
+      dockerfile: src/USCISFormTracker.Processor/Dockerfile
     container_name: uscisft-processor
     environment:
       # Database (containerized PostgreSQL)
@@ -79,7 +79,7 @@ services:
   emailer:
     build:
       context: .
-      dockerfile: USCISFormTracker.Emailer/Dockerfile
+      dockerfile: src/USCISFormTracker.Emailer/Dockerfile
     container_name: uscisft-emailer
     environment:
       # RabbitMQ
@@ -105,7 +105,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: USCISFormTracker.Web/Dockerfile
+      dockerfile: src/USCISFormTracker.Web/Dockerfile
     container_name: uscisft-web
     environment:
       # Database (containerized PostgreSQL)
