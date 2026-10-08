@@ -1,11 +1,6 @@
-# Local development override: publishes the web frontend on http://localhost:9009
-# and disables the Cloudflare Tunnel.
+# Local development override: disables the Cloudflare Tunnel.
 #
 services:
-  web:
-    ports:
-      - "9009:80"
-
   cloudflared:
     # Assigning a profile removes cloudflared from the default `up`.
     profiles:

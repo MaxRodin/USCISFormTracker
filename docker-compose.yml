@@ -80,7 +80,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       # Logging
       Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
-    # No host ports: the site is reached through the Cloudflare Tunnel below.
+    ports:
+      - "127.0.0.1:8080:80"  # Only accessible from localhost
     depends_on:
       postgres:
         condition: service_healthy

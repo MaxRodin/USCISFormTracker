@@ -38,9 +38,9 @@ docker compose up -d
 
 This starts PostgreSQL, the two services, and a `cloudflared` container.
 
-**Local use.** Copy `docker-compose.override.example.yml` to `docker-compose.override.yml` before `docker compose up`. The override publishes the web site on http://localhost:9009 and disables the Cloudflare Tunnel so no token is needed. The file is gitignored, so production hosts run the base compose file only.
+**Local use.** Copy `docker-compose.override.example.yml` to `docker-compose.override.yml` before `docker compose up`. The override disables the Cloudflare Tunnel so no token is needed; the site is reached at http://127.0.0.1:8080. The file is gitignored, so production hosts run the base compose file only.
 
-**Production.** TLS is terminated by Cloudflare. The web container serves plain HTTP on port 80 to the Cloudflare Tunnel over the internal Docker network and publishes no host ports. Create a tunnel in Cloudflare Zero Trust, route its public hostname to `http://web:80`, and set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`; without the token the `cloudflared` container exits on start. If you run without the tunnel, mount a PFX origin certificate at `/app/certs/origin.pfx` and publish ports 80 and 443 on the `web` service instead.
+**Production.** TLS is terminated by Cloudflare. The web container serves plain HTTP on port 80 to the Cloudflare Tunnel over the internal Docker network and is published on the host at http://127.0.0.1:8080 only. Create a tunnel in Cloudflare Zero Trust, route its public hostname to `http://web:80`, and set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`; without the token the `cloudflared` container exits on start. If you run without the tunnel, mount a PFX origin certificate at `/app/certs/origin.pfx` and publish ports 80 and 443 on the `web` service instead.
 
 **Useful knobs.**
 
