@@ -1,9 +1,9 @@
-using USCISFormTracker.Dto;
+using USCISFormTracker.Core.Models;
 
 namespace USCISFormTracker.Formatting;
 
 public interface IRunSummaryFormatter
 {
-    string FormatAsHtml(RunSummaryMessage summary);
-    string FormatAsText(RunSummaryMessage summary);
+    string FormatAsHtml(FormRunSummary summary);
+    string FormatAsText(FormRunSummary summary);
 }

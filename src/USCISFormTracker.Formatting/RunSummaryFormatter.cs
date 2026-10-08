@@ -1,11 +1,11 @@
 using System.Text;
-using USCISFormTracker.Dto;
+using USCISFormTracker.Core.Models;
 
 namespace USCISFormTracker.Formatting;
 
 public class RunSummaryFormatter : IRunSummaryFormatter
 {
-    public string FormatAsHtml(RunSummaryMessage summary)
+    public string FormatAsHtml(FormRunSummary summary)
     {
         var sb = new StringBuilder();
         sb.AppendLine("<html><body>");
@@ -19,25 +19,25 @@ public class RunSummaryFormatter : IRunSummaryFormatter
         sb.AppendLine("<h3>Summary</h3>");
         sb.AppendLine("<ul>");
         sb.AppendLine($"<li><strong>{summary.TotalFormsOnWebsite}</strong> total forms on USCIS website</li>");
-        sb.AppendLine($"<li><strong style=\"color: green;\">{summary.NewFormsCount}</strong> new forms discovered</li>");
-        sb.AppendLine($"<li><strong style=\"color: orange;\">{summary.ChangedFormsCount}</strong> forms changed</li>");
-        sb.AppendLine($"<li><strong style=\"color: red;\">{summary.DeletedFormsCount}</strong> forms removed</li>");
+        sb.AppendLine($"<li><strong style=\"color: green;\">{summary.AddedForms.Count}</strong> new forms discovered</li>");
+        sb.AppendLine($"<li><strong style=\"color: orange;\">{summary.ChangedForms.Count}</strong> forms changed</li>");
+        sb.AppendLine($"<li><strong style=\"color: red;\">{summary.DeletedForms.Count}</strong> forms removed</li>");
         sb.AppendLine("</ul>");
 
         // New forms section
-        if (summary.NewForms.Count > 0)
+        if (summary.AddedForms.Count > 0)
         {
             sb.AppendLine("<h3 style=\"color: green;\">New Forms Discovered</h3>");
-            var displayCount = Math.Min(summary.NewForms.Count, 50);
+            var displayCount = Math.Min(summary.AddedForms.Count, 50);
             sb.AppendLine("<ul>");
-            foreach (var form in summary.NewForms.Take(displayCount))
+            foreach (var form in summary.AddedForms.Take(displayCount))
             {
                 sb.AppendLine($"<li><strong>{HtmlEncode(form.FormName)}</strong> - <a href=\"{HtmlEncode(form.FullLink)}\">{HtmlEncode(form.FileName)}</a></li>");
             }
             sb.AppendLine("</ul>");
-            if (summary.NewForms.Count > displayCount)
+            if (summary.AddedForms.Count > displayCount)
             {
-                sb.AppendLine($"<p><em>... and {summary.NewForms.Count - displayCount} more forms</em></p>");
+                sb.AppendLine($"<p><em>... and {summary.AddedForms.Count - displayCount} more forms</em></p>");
             }
         }
 
@@ -52,33 +52,33 @@ public class RunSummaryFormatter : IRunSummaryFormatter
                 sb.AppendLine($"<h4><strong>{HtmlEncode(form.FormName)}</strong> - <a href=\"{HtmlEncode(form.FullLink)}\">{HtmlEncode(form.FileName)}</a></h4>");
 
                 // Show diff if total changes < 100 lines
-                var totalLines = (form.AddedLines?.Count ?? 0) + (form.DeletedLines?.Count ?? 0) + (form.ModifiedLines?.Count ?? 0);
+                var totalLines = form.Diff.AddedLines.Count + form.Diff.DeletedLines.Count + form.Diff.ModifiedLines.Count;
                 if (totalLines > 0 && totalLines < 100)
                 {
                     sb.AppendLine("<div style=\"font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 10px; margin-top: 10px;\">");
 
-                    if (form.AddedLines?.Count > 0)
+                    if (form.Diff.AddedLines.Count > 0)
                     {
                         sb.AppendLine("<div style=\"color: green; margin-bottom: 5px;\"><strong>Added:</strong></div>");
-                        foreach (var line in form.AddedLines)
+                        foreach (var line in form.Diff.AddedLines)
                         {
                             sb.AppendLine($"<div style=\"color: green;\">+ {HtmlEncode(line)}</div>");
                         }
                     }
 
-                    if (form.DeletedLines?.Count > 0)
+                    if (form.Diff.DeletedLines.Count > 0)
                     {
                         sb.AppendLine("<div style=\"color: red; margin-top: 5px; margin-bottom: 5px;\"><strong>Deleted:</strong></div>");
-                        foreach (var line in form.DeletedLines)
+                        foreach (var line in form.Diff.DeletedLines)
                         {
                             sb.AppendLine($"<div style=\"color: red;\">- {HtmlEncode(line)}</div>");
                         }
                     }
 
-                    if (form.ModifiedLines?.Count > 0)
+                    if (form.Diff.ModifiedLines.Count > 0)
                     {
                         sb.AppendLine("<div style=\"color: orange; margin-top: 5px; margin-bottom: 5px;\"><strong>Modified:</strong></div>");
-                        foreach (var line in form.ModifiedLines)
+                        foreach (var line in form.Diff.ModifiedLines)
                         {
                             sb.AppendLine($"<div style=\"color: orange;\">~ {HtmlEncode(line)}</div>");
                         }
@@ -116,7 +116,7 @@ public class RunSummaryFormatter : IRunSummaryFormatter
         return sb.ToString();
     }
 
-    public string FormatAsText(RunSummaryMessage summary)
+    public string FormatAsText(FormRunSummary summary)
     {
         var sb = new StringBuilder();
 
@@ -130,24 +130,24 @@ public class RunSummaryFormatter : IRunSummaryFormatter
         // Summary stats
         sb.AppendLine("Summary:");
         sb.AppendLine($"  Total forms on website: {summary.TotalFormsOnWebsite}");
-        sb.AppendLine($"  New forms: {summary.NewFormsCount}");
-        sb.AppendLine($"  Changed forms: {summary.ChangedFormsCount}");
-        sb.AppendLine($"  Removed forms: {summary.DeletedFormsCount}");
+        sb.AppendLine($"  New forms: {summary.AddedForms.Count}");
+        sb.AppendLine($"  Changed forms: {summary.ChangedForms.Count}");
+        sb.AppendLine($"  Removed forms: {summary.DeletedForms.Count}");
         sb.AppendLine();
 
         // New forms
-        if (summary.NewForms.Count > 0)
+        if (summary.AddedForms.Count > 0)
         {
             sb.AppendLine("=== New Forms Discovered ===");
-            var displayCount = Math.Min(summary.NewForms.Count, 50);
-            foreach (var form in summary.NewForms.Take(displayCount))
+            var displayCount = Math.Min(summary.AddedForms.Count, 50);
+            foreach (var form in summary.AddedForms.Take(displayCount))
             {
                 sb.AppendLine($"  • {form.FormName} ({form.FileName})");
                 sb.AppendLine($"    {form.FullLink}");
             }
-            if (summary.NewForms.Count > displayCount)
+            if (summary.AddedForms.Count > displayCount)
             {
-                sb.AppendLine($"  ... and {summary.NewForms.Count - displayCount} more forms");
+                sb.AppendLine($"  ... and {summary.AddedForms.Count - displayCount} more forms");
             }
             sb.AppendLine();
         }
@@ -162,32 +162,32 @@ public class RunSummaryFormatter : IRunSummaryFormatter
                 sb.AppendLine($"    {form.FullLink}");
 
                 // Show diff if total changes < 100 lines
-                var totalLines = (form.AddedLines?.Count ?? 0) + (form.DeletedLines?.Count ?? 0) + (form.ModifiedLines?.Count ?? 0);
+                var totalLines = form.Diff.AddedLines.Count + form.Diff.DeletedLines.Count + form.Diff.ModifiedLines.Count;
                 if (totalLines > 0 && totalLines < 100)
                 {
                     sb.AppendLine();
-                    if (form.AddedLines?.Count > 0)
+                    if (form.Diff.AddedLines.Count > 0)
                     {
                         sb.AppendLine("    Added:");
-                        foreach (var line in form.AddedLines)
+                        foreach (var line in form.Diff.AddedLines)
                         {
                             sb.AppendLine($"      + {line}");
                         }
                     }
 
-                    if (form.DeletedLines?.Count > 0)
+                    if (form.Diff.DeletedLines.Count > 0)
                     {
                         sb.AppendLine("    Deleted:");
-                        foreach (var line in form.DeletedLines)
+                        foreach (var line in form.Diff.DeletedLines)
                         {
                             sb.AppendLine($"      - {line}");
                         }
                     }
 
-                    if (form.ModifiedLines?.Count > 0)
+                    if (form.Diff.ModifiedLines.Count > 0)
                     {
                         sb.AppendLine("    Modified:");
-                        foreach (var line in form.ModifiedLines)
+                        foreach (var line in form.Diff.ModifiedLines)
                         {
                             sb.AppendLine($"      ~ {line}");
                         }

@@ -10,20 +10,19 @@ USCIS revises its forms without much fanfare, and filing an outdated edition can
 2. Each PDF's text is extracted with [PdfPig](https://github.com/UglyToad/PdfPig), using position-based filtering to strip footers and preserve line structure.
 3. A SHA-256 hash of the extracted text is compared against the last known hash stored in PostgreSQL.
 4. When a hash differs, a line-by-line diff is generated with [DiffPlex](https://github.com/mmanela/diffplex) and the change is recorded.
-5. A message is published to RabbitMQ, and the emailer service sends a notification with the diff to the mailing list via [Mailgun](https://www.mailgun.com/).
+5. At the end of the run, if anything was added, changed, or removed, one summary email with the diffs is sent to the mailing list via [Mailgun](https://www.mailgun.com/).
 
 ## Architecture
 
-Three services communicating over RabbitMQ (MassTransit), backed by PostgreSQL:
+Two services backed by PostgreSQL, sharing a set of libraries:
 
 | Project | Role |
 |---|---|
-| `USCISFormTracker.Processor` | Worker service that runs the scheduled monitoring job: scrape, download, hash, diff, persist |
-| `USCISFormTracker.Emailer` | Consumes change events from RabbitMQ and sends Mailgun notifications |
+| `USCISFormTracker.Processor` | Worker service that runs the scheduled monitoring job: scrape, download, hash, diff, persist, email the summary |
 | `USCISFormTracker.Web` | Public site: mailing-list signup (`POST /mailing-list`) and recent changes feed (`GET /changes/recent`) |
 | `USCISFormTracker.Core` | Business logic: scraping, PDF text extraction, hashing, diffing |
 | `USCISFormTracker.Data` | EF Core persistence (PostgreSQL) and migrations |
-| `USCISFormTracker.Dto` | Message contracts shared between services |
+| `USCISFormTracker.Email` | Mailgun client: sends the run summary to the mailing list and adds subscribers to it |
 | `USCISFormTracker.Formatting` | Formats diffs and run summaries for email and web output |
 | `USCISFormTracker.Tests` | xUnit test suite with HTML/PDF fixtures |
 
@@ -31,13 +30,13 @@ Three services communicating over RabbitMQ (MassTransit), backed by PostgreSQL:
 
 ```bash
 cp .env.example .env
-# Edit .env — Mailgun credentials are required; database/RabbitMQ
-# passwords have development defaults you should change for production.
+# Edit .env — Mailgun credentials are required; the database password
+# has a development default you should change for production.
 
 docker compose up -d
 ```
 
-This starts PostgreSQL, RabbitMQ, the three services, and a `cloudflared` container.
+This starts PostgreSQL, the two services, and a `cloudflared` container.
 
 **Local use.** Copy `docker-compose.override.example.yml` to `docker-compose.override.yml` before `docker compose up`. The override publishes the web site on http://localhost and disables the Cloudflare Tunnel so no token is needed. The file is gitignored, so production hosts run the base compose file only.
 
@@ -47,14 +46,14 @@ This starts PostgreSQL, RabbitMQ, the three services, and a `cloudflared` contai
 
 - `QUARTZ_CRON_SCHEDULE` in `.env` controls when the Processor runs (Quartz format: `second minute hour day month dayOfWeek`; default `0 0 2 * * ?`, daily at 2 AM).
 - `docker compose restart processor` triggers a check immediately instead of waiting for the schedule.
-- RabbitMQ management UI is at http://localhost:15672. Swagger UI on the web service is only enabled when `ASPNETCORE_ENVIRONMENT=Development` (compose defaults to `Production`).
-- On the first run the Processor records every form and sends a single summary email; later runs send one email per changed form.
+- Swagger UI on the web service is only enabled when `ASPNETCORE_ENVIRONMENT=Development` (compose defaults to `Production`).
+- Each run sends at most one summary email, and only when a form was added, changed, or removed. The first run records every form, so it reports them all as new.
 - Downloaded PDFs are kept in the `forms_data` volume, mounted at `/app/forms` in the processor container. Files land under `/app/forms/uscis/<form>/`, and the database stores paths relative to that root. If you have PDFs from an older local run in `pdfs/<form>/`, move them to `forms/uscis/<form>/` by hand.
 - Back up the database with `docker compose exec postgres pg_dump -U postgres uscis_forms > backup.sql`.
 
 ## Local Development
 
-Requires the .NET 8 SDK, plus PostgreSQL and RabbitMQ (easiest via `docker-compose up -d postgres rabbitmq`).
+Requires the .NET 8 SDK plus PostgreSQL (easiest via `docker compose up -d postgres`). Both services need the `MAILGUN_*` values from `.env` at startup.
 
 ```bash
 dotnet build
@@ -62,7 +61,6 @@ dotnet test
 
 # Run individual services
 dotnet run --project src/USCISFormTracker.Processor
-dotnet run --project src/USCISFormTracker.Emailer
 HTTP_PORT=5080 dotnet run --project src/USCISFormTracker.Web  # default port 80 needs root on Linux
 ```
 

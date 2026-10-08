@@ -19,26 +19,6 @@ services:
     networks:
       - uscis-network
 
-  # RabbitMQ Message Broker
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: uscisft-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
-    ports:
-      - "127.0.0.1:5672:5672"   # AMQP port (localhost only)
-      - "127.0.0.1:15672:15672" # Management UI (localhost only)
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - uscis-network
-
   # Processor Service (Form Monitoring Worker)
   processor:
     build:
@@ -52,10 +32,12 @@ services:
       DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
       DATABASE_USER: ${DATABASE_USER:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      # RabbitMQ
-      RabbitMQ__Host: rabbitmq
-      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
-      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
+      # Mailgun
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:?MAILGUN_API_KEY is required}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:?MAILGUN_DOMAIN is required}
+      MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:?MAILGUN_FROM_EMAIL is required}
+      MAILGUN_FROM_NAME: ${MAILGUN_FROM_NAME:-USCIS Form Tracker}
+      MAILGUN_MAILING_LIST_ADDRESS: ${MAILGUN_MAILING_LIST_ADDRESS:?MAILGUN_MAILING_LIST_ADDRESS is required}
       # USCIS Config
       UscisConfig__FormsPageUrl: ${USCIS_FORMS_PAGE_URL:-https://www.uscis.gov/forms/all-forms}
       # Quartz Schedule (run every day at 2:00 AM)
@@ -69,41 +51,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
     volumes:
       - forms_data:/app/forms
     restart: unless-stopped
     networks:
       - uscis-network
 
-  # Emailer Service (Email Consumer)
-  emailer:
-    build:
-      context: .
-      dockerfile: src/USCISFormTracker.Emailer/Dockerfile
-    container_name: uscisft-emailer
-    environment:
-      # RabbitMQ
-      RabbitMQ__Host: rabbitmq
-      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
-      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
-      # Mailgun
-      Mailgun__ApiKey: ${MAILGUN_API_KEY:?MAILGUN_API_KEY is required}
-      Mailgun__Domain: ${MAILGUN_DOMAIN:?MAILGUN_DOMAIN is required}
-      Mailgun__FromEmail: ${MAILGUN_FROM_EMAIL:?MAILGUN_FROM_EMAIL is required}
-      Mailgun__FromName: ${MAILGUN_FROM_NAME:-USCIS Form Tracker}
-      Mailgun__MailingListAddress: ${MAILGUN_MAILING_LIST_ADDRESS:?MAILGUN_MAILING_LIST_ADDRESS is required}
-      # Logging
-      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - uscis-network
-
-  # Web Service (Serves mailing list signup page and API endpoints)
+  # Web Service (mailing list signup page and API endpoints)
   web:
     build:
       context: .
@@ -116,10 +70,12 @@ services:
       DATABASE_NAME: ${DATABASE_NAME:-uscis_forms}
       DATABASE_USER: ${DATABASE_USER:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      # RabbitMQ
-      RabbitMQ__Host: rabbitmq
-      RabbitMQ__Username: ${RABBITMQ_USERNAME:-guest}
-      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
+      # Mailgun
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:?MAILGUN_API_KEY is required}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:?MAILGUN_DOMAIN is required}
+      MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:?MAILGUN_FROM_EMAIL is required}
+      MAILGUN_FROM_NAME: ${MAILGUN_FROM_NAME:-USCIS Form Tracker}
+      MAILGUN_MAILING_LIST_ADDRESS: ${MAILGUN_MAILING_LIST_ADDRESS:?MAILGUN_MAILING_LIST_ADDRESS is required}
       # ASP.NET Core
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       # Logging
@@ -129,8 +85,6 @@ services:
     # docker-compose.override.yml, which publishes port 80.
     depends_on:
       postgres:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -153,8 +107,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  rabbitmq_data:
     driver: local
   forms_data:
     driver: local

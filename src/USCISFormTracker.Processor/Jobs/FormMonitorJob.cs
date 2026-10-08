@@ -1,11 +1,9 @@
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using USCISFormTracker.Core;
-using USCISFormTracker.Core.Models;
 using USCISFormTracker.Data;
-using USCISFormTracker.Dto;
+using USCISFormTracker.Email;
 
 namespace USCISFormTracker.Processor.Jobs;
 
@@ -14,22 +12,19 @@ public class FormMonitorJob : IJob
 {
     private readonly ILogger<FormMonitorJob> _logger;
     private readonly IFormMonitoringService _monitoringService;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IRunSummaryNotifier _notifier;
     private readonly FormTrackerDbContext _dbContext;
-    private readonly IFormRepository _repository;
 
     public FormMonitorJob(
         ILogger<FormMonitorJob> logger,
         IFormMonitoringService monitoringService,
-        IPublishEndpoint publishEndpoint,
-        FormTrackerDbContext dbContext,
-        IFormRepository repository)
+        IRunSummaryNotifier notifier,
+        FormTrackerDbContext dbContext)
     {
         _logger = logger;
         _monitoringService = monitoringService;
-        _publishEndpoint = publishEndpoint;
+        _notifier = notifier;
         _dbContext = dbContext;
-        _repository = repository;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -44,15 +39,15 @@ public class FormMonitorJob : IJob
             // Run the monitoring workflow
             var summary = await _monitoringService.MonitorFormsAsync();
 
-            // Publish a summary only when something changed
+            // Email a summary only when something changed
             if (summary.HasChanges)
             {
-                await PublishAggregateSummaryAsync(summary);
+                await _notifier.SendAsync(summary);
             }
             else
             {
                 _logger.LogInformation(
-                    "No form changes detected ({Total} forms checked); skipping summary publish",
+                    "No form changes detected ({Total} forms checked); skipping summary email",
                     summary.TotalFormsOnWebsite);
             }
 
@@ -63,47 +58,5 @@ public class FormMonitorJob : IJob
             _logger.LogError(ex, "Error during form monitoring: {Message}", ex.Message);
             throw;
         }
-    }
-
-    private async Task PublishAggregateSummaryAsync(FormRunSummary summary)
-    {
-        _logger.LogInformation(
-            "Publishing aggregate summary: {NewCount} new, {ChangedCount} changed, {DeletedCount} deleted",
-            summary.AddedForms.Count,
-            summary.ChangedForms.Count,
-            summary.DeletedForms.Count);
-
-        var message = new RunSummaryMessage
-        {
-            RunTime = summary.RunTime,
-            TotalFormsOnWebsite = summary.TotalFormsOnWebsite,
-            NewFormsCount = summary.AddedForms.Count,
-            ChangedFormsCount = summary.ChangedForms.Count,
-            DeletedFormsCount = summary.DeletedForms.Count,
-            NewForms = summary.AddedForms.Select(f => new FormSummaryItem
-            {
-                FileName = f.FileName,
-                FormName = f.FormName,
-                FullLink = f.FullLink
-            }).ToList(),
-            ChangedForms = summary.ChangedForms.Select(f => new FormSummaryItem
-            {
-                FileName = f.FileName,
-                FormName = f.FormName,
-                FullLink = f.FullLink,
-                AddedLines = f.Diff.AddedLines,
-                DeletedLines = f.Diff.DeletedLines,
-                ModifiedLines = f.Diff.ModifiedLines
-            }).ToList(),
-            DeletedForms = summary.DeletedForms.Select(f => new FormSummaryItem
-            {
-                FileName = f.FileName,
-                FormName = f.FormName,
-                FullLink = f.LastKnownLink
-            }).ToList()
-        };
-
-        await _publishEndpoint.Publish(message);
-        _logger.LogInformation("Aggregate summary message published");
     }
 }

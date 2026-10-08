@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
-    <ProjectReference Include="..\USCISFormTracker.Dto\USCISFormTracker.Dto.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

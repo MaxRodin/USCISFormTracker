@@ -65,30 +65,13 @@ services.AddHttpClient<IWebPdfGetter, UscisWebPdfGetter>()
 ### Issue #7: Email Sending Has No Error Recovery
 **Status**: Open
 **Priority**: Medium
-**Location**: `USCISFormTracker.Emailer/Consumers/RunSummaryConsumer.cs`
+**Location**: `USCISFormTracker.Email/RunSummaryNotifier.cs`, called from `Processor/Jobs/FormMonitorJob.cs`
 
-**Problem**: If Mailgun API fails, the email notification is lost forever. No retry mechanism.
+**Problem**: The Processor calls Mailgun directly at the end of a run. Form changes are already persisted by then, so if the Mailgun API call fails the summary email for that run is lost; the job logs the error and fails, and nothing resends it.
 
 **Impact**: Medium - Missed notifications on transient failures
 
-**Recommended Solution**: Configure MassTransit retry policy
-```csharp
-// In Emailer/Program.cs
-x.AddConsumer<RunSummaryConsumer>(cfg =>
-{
-    cfg.UseMessageRetry(r =>
-    {
-        r.Interval(3, TimeSpan.FromMinutes(5));
-        r.Ignore<ArgumentException>(); // Don't retry on validation errors
-    });
-});
-
-// Configure dead-letter queue for failed messages
-cfg.ReceiveEndpoint("run-summary-error", e =>
-{
-    e.ConfigureConsumer<RunSummaryConsumer>(context);
-});
-```
+**Recommended Solution**: Retry the send with backoff inside `RunSummaryNotifier` (or wrap `IEmailSender` with Polly), and treat a failed send as a job failure that is surfaced in logs/alerts. A more durable option is to record "summary pending" state on the run and have the next job execution resend it.
 
 ---
 
@@ -131,14 +114,12 @@ cfg.ReceiveEndpoint("run-summary-error", e =>
 ```bash
 dotnet add package Microsoft.Extensions.Diagnostics.HealthChecks
 dotnet add package AspNetCore.HealthChecks.NpgSql
-dotnet add package AspNetCore.HealthChecks.RabbitMQ
 ```
 
 ```csharp
 // In Processor/Program.cs
 builder.Services.AddHealthChecks()
-    .AddNpgSql(connectionString, name: "database")
-    .AddRabbitMQ(rabbitConnectionString, name: "rabbitmq");
+    .AddNpgSql(connectionString, name: "database");
 
 // Add endpoint
 app.MapHealthChecks("/health");
@@ -217,14 +198,13 @@ _logger.LogError("Error processing form {FileName}: {ErrorMessage}", fileName, e
 **Missing Test Coverage**:
 - [ ] FormComparisonService integration tests
 - [ ] FormMonitorJob workflow tests
-- [ ] EmailContentBuilder formatting tests
+- [x] RunSummaryFormatter / RunSummaryNotifier tests
 - [ ] Repository layer tests
 - [ ] Error scenarios:
   - [ ] Network failures during PDF download
   - [ ] Malformed HTML from USCIS website
   - [ ] Corrupted PDF files
   - [ ] Database connection failures
-  - [ ] RabbitMQ connection failures
   - [ ] Mailgun API failures
 
 **Recommended Additions**:
@@ -280,7 +260,7 @@ using var stream = await response.Content.ReadAsStreamAsync();
 ### Issue #15: Email Templates Hardcoded in C#
 **Status**: Open
 **Priority**: Low
-**Location**: `USCISFormTracker.Emailer/Services/EmailContentBuilder.cs`
+**Location**: `USCISFormTracker.Formatting/RunSummaryFormatter.cs`
 
 **Problem**: HTML and text email templates are hardcoded in C# with StringBuilder. Difficult to edit and preview.
 
@@ -451,7 +431,7 @@ These are features that don't exist but would be valuable:
 **Fixed In**: Commit [pending]
 **Solution**:
 - Added `ValidateConfiguration()` method to Processor/Program.cs
-- Added `ValidateConfiguration()` method to Emailer/Program.cs
+- Mailgun settings are validated in `Email/ServiceExtensions.AddEmailServices` (used by Processor and Web)
 - Validates all required environment variables and configuration values
 - Provides clear error messages listing missing configuration
 - Fails fast at startup instead of runtime

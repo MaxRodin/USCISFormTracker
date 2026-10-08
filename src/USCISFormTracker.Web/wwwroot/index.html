@@ -241,7 +241,7 @@
                 } else {
                     // API returned an error
                     const error = await response.json().catch(() => ({}));
-                    throw new Error(error.message || 'Failed to subscribe');
+                    throw new Error(error.error || error.detail || error.message || 'Failed to subscribe');
                 }
             } catch (error) {
                 // Error handling

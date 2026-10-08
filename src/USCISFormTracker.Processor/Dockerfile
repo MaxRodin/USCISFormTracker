@@ -5,7 +5,8 @@ WORKDIR /repo
 COPY ["src/USCISFormTracker.Processor/USCISFormTracker.Processor.csproj", "src/USCISFormTracker.Processor/"]
 COPY ["src/USCISFormTracker.Core/USCISFormTracker.Core.csproj", "src/USCISFormTracker.Core/"]
 COPY ["src/USCISFormTracker.Data/USCISFormTracker.Data.csproj", "src/USCISFormTracker.Data/"]
-COPY ["src/USCISFormTracker.Dto/USCISFormTracker.Dto.csproj", "src/USCISFormTracker.Dto/"]
+COPY ["src/USCISFormTracker.Formatting/USCISFormTracker.Formatting.csproj", "src/USCISFormTracker.Formatting/"]
+COPY ["src/USCISFormTracker.Email/USCISFormTracker.Email.csproj", "src/USCISFormTracker.Email/"]
 RUN dotnet restore "src/USCISFormTracker.Processor/USCISFormTracker.Processor.csproj"
 
 # Copy everything else and build

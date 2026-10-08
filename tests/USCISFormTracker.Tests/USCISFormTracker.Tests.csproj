@@ -25,6 +25,8 @@
     <ProjectReference Include="..\..\src\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
     <ProjectReference Include="..\..\src\USCISFormTracker.Processor\USCISFormTracker.Processor.csproj" />
     <ProjectReference Include="..\..\src\USCISFormTracker.Data\USCISFormTracker.Data.csproj" />
+    <ProjectReference Include="..\..\src\USCISFormTracker.Formatting\USCISFormTracker.Formatting.csproj" />
+    <ProjectReference Include="..\..\src\USCISFormTracker.Email\USCISFormTracker.Email.csproj" />
   </ItemGroup>
 
   <ItemGroup>

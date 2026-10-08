@@ -8,13 +8,12 @@ USCIS Form Change Tracker: scrapes the USCIS all-forms page, extracts text from 
 
 ## Architecture
 
-Three deployable services under `src/` (tests under `tests/`), communicating over RabbitMQ (MassTransit) and backed by PostgreSQL (EF Core / Npgsql):
+Two deployable services under `src/` (tests under `tests/`), backed by PostgreSQL (EF Core / Npgsql):
 
-- `USCISFormTracker.Processor`: worker that runs the monitoring job on a Quartz cron schedule (daily by default)
-- `USCISFormTracker.Emailer`: consumes change events and sends Mailgun notifications
+- `USCISFormTracker.Processor`: worker that runs the monitoring job on a Quartz cron schedule (daily by default) and emails the run summary
 - `USCISFormTracker.Web`: mailing-list signup (`POST /mailing-list`) and recent changes feed (`GET /changes/recent`)
 
-Shared libraries: `Core` (business logic), `Data` (EF Core + migrations), `Dto` (message contracts), `Formatting` (diff/summary formatting for email and web).
+Shared libraries: `Core` (business logic), `Data` (EF Core + migrations), `Formatting` (diff/summary formatting for email and web), `Email` (Mailgun client; `IEmailSender` sends mail and adds list members, `IRunSummaryNotifier` emails a run summary). There is no message bus: Processor and Web call the Email library directly.
 
 Core is interface-based. Key abstractions and their implementations:
 
@@ -29,16 +28,15 @@ Core is interface-based. Key abstractions and their implementations:
 
 `PdfPigReader` (raw `page.Text`) and `ImprovedPdfPigReader` (Y-position grouping with header filtering) are alternative readers kept for comparison in tests. `PdfPigLayoutPdfReader` is the one registered in `Core/ServiceExtensions.cs`; changing the reader changes every stored hash, so expect a full round of "changes" after swapping it.
 
-**Data flow:** scrape PDF links -> download -> extract text -> hash -> compare with stored `PdfFormRecord` -> on change, diff, store `PdfFormChange`, publish event (Emailer sends the notification) -> update record.
+**Data flow:** scrape PDF links -> download -> extract text -> hash -> compare with stored `PdfFormRecord` -> on change, diff, store `PdfFormChange`, update record -> after the run, `IRunSummaryNotifier` sends one summary email to the Mailgun mailing list if anything changed.
 
 ## Development
 
 ```bash
-docker compose up -d postgres rabbitmq   # infrastructure only
+docker compose up -d postgres            # infrastructure only
 dotnet build
 dotnet test
 dotnet run --project src/USCISFormTracker.Processor
-dotnet run --project src/USCISFormTracker.Emailer
 HTTP_PORT=5080 dotnet run --project src/USCISFormTracker.Web
 ```
 
@@ -50,4 +48,4 @@ xUnit + Moq in `tests/USCISFormTracker.Tests`. Fixtures live in `TestData/Html` 
 
 ## Configuration
 
-Committed `appsettings.json` files hold placeholders and non-sensitive defaults only. Real values (Mailgun key, database/RabbitMQ passwords, Cloudflare tunnel token) go in `.env` (template in `.env.example`, loaded via DotNetEnv) or environment variables. `.env`, `appsettings.*.json` variants, `docker-compose.override.yml`, and the PDF storage root `forms/` are gitignored.
+Committed `appsettings.json` files hold placeholders and non-sensitive defaults only. Real values (Mailgun key, database password, Cloudflare tunnel token) go in `.env` (template in `.env.example`, loaded via DotNetEnv) or environment variables. Database settings are read as flat `DATABASE_*` keys in `Data/ServiceExtensions.cs` and Mailgun settings as `MAILGUN_*` keys in `Email/ServiceExtensions.cs`; both services fail at startup if a required key is missing. `.env`, `appsettings.*.json` variants, `docker-compose.override.yml`, and the PDF storage root `forms/` are gitignored.

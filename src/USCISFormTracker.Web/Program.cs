@@ -1,8 +1,7 @@
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using USCISFormTracker.Core;
 using USCISFormTracker.Data;
-using USCISFormTracker.Dto;
+using USCISFormTracker.Email;
 using USCISFormTracker.Formatting;
 using DotNetEnv;
 using System.ComponentModel.DataAnnotations;
@@ -42,24 +41,8 @@ builder.Services.AddDataServices(builder.Configuration);
 // Formatting services
 builder.Services.AddSingleton<IFormChangeFormatter, FormChangeFormatter>();
 
-// Configure MassTransit with RabbitMQ
-builder.Services.AddMassTransit(x =>
-{
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
-        var username = builder.Configuration["RabbitMQ:Username"] ?? "guest";
-        var password = builder.Configuration["RabbitMQ:Password"] ?? "guest";
-
-        cfg.Host(host, h =>
-        {
-            h.Username(username);
-            h.Password(password);
-        });
-
-        cfg.ConfigureEndpoints(context);
-    });
-});
+// Email services (Mailgun)
+builder.Services.AddEmailServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -93,20 +76,22 @@ app.UseStaticFiles();
 
 // API endpoints below
 // AddToMailingList endpoint
-app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IPublishEndpoint publishEndpoint) =>
+app.MapPost("/mailing-list", async (EmailSubscriptionRequest request, IEmailSender emailSender, ILogger<Program> logger) =>
 {
     if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
     {
         return Results.BadRequest(new { error = "Invalid email address" });
     }
 
-    var message = new AddToMailingListMessage
+    try
     {
-        Email = request.Email,
-        SubscribedAt = DateTime.UtcNow
-    };
-
-    await publishEndpoint.Publish(message);
+        await emailSender.AddToMailingListAsync(request.Email);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to add {Email} to the mailing list", request.Email);
+        return Results.Problem("Could not add email to mailing list. Please try again later.", statusCode: 502);
+    }
 
     return Results.Ok(new { message = "Successfully added to mailing list", email = request.Email });
 })

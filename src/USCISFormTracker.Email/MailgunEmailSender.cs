@@ -1,37 +1,28 @@
 using RestSharp;
 using RestSharp.Authenticators;
-using USCISFormTracker.Emailer.Models;
 
-namespace USCISFormTracker.Emailer;
+namespace USCISFormTracker.Email;
 
 public class MailgunEmailSender : IEmailSender
 {
-    private readonly string _apiKey;
-    private readonly string _domain;
-    private readonly string _fromEmail;
-    private readonly string _fromName;
-    private readonly string? _mailingListAddress;
+    private readonly MailgunOptions _options;
 
-    public MailgunEmailSender(string apiKey, string domain, string fromEmail, string fromName, string? mailingListAddress = null)
+    public MailgunEmailSender(MailgunOptions options)
     {
-        _apiKey = apiKey;
-        _domain = domain;
-        _fromEmail = fromEmail;
-        _fromName = fromName;
-        _mailingListAddress = mailingListAddress;
+        _options = options;
     }
 
     public async Task SendEmailAsync(EmailMessage message)
     {
-        var options = new RestClientOptions($"https://api.mailgun.net/v3/{_domain}")
+        var clientOptions = new RestClientOptions($"https://api.mailgun.net/v3/{_options.Domain}")
         {
-            Authenticator = new HttpBasicAuthenticator("api", _apiKey)
+            Authenticator = new HttpBasicAuthenticator("api", _options.ApiKey)
         };
 
-        var client = new RestClient(options);
+        using var client = new RestClient(clientOptions);
         var request = new RestRequest("messages", Method.Post);
 
-        request.AddParameter("from", $"{_fromName} <{_fromEmail}>");
+        request.AddParameter("from", $"{_options.FromName} <{_options.FromEmail}>");
         request.AddParameter("to", message.To);
         request.AddParameter("subject", message.Subject);
         request.AddParameter("html", message.HtmlBody);
@@ -51,18 +42,13 @@ public class MailgunEmailSender : IEmailSender
 
     public async Task AddToMailingListAsync(string email)
     {
-        if (string.IsNullOrWhiteSpace(_mailingListAddress))
+        var clientOptions = new RestClientOptions("https://api.mailgun.net/v3")
         {
-            throw new InvalidOperationException("Mailing list address is not configured");
-        }
-
-        var options = new RestClientOptions("https://api.mailgun.net/v3")
-        {
-            Authenticator = new HttpBasicAuthenticator("api", _apiKey)
+            Authenticator = new HttpBasicAuthenticator("api", _options.ApiKey)
         };
 
-        var client = new RestClient(options);
-        var request = new RestRequest($"lists/{_mailingListAddress}/members", Method.Post);
+        using var client = new RestClient(clientOptions);
+        var request = new RestRequest($"lists/{_options.MailingListAddress}/members", Method.Post);
 
         request.AddParameter("address", email);
         request.AddParameter("subscribed", "yes");

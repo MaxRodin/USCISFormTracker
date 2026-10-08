@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -22,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\USCISFormTracker.Core\USCISFormTracker.Core.csproj" />
-    <ProjectReference Include="..\USCISFormTracker.Dto\USCISFormTracker.Dto.csproj" />
+    <ProjectReference Include="..\USCISFormTracker.Email\USCISFormTracker.Email.csproj" />
     <ProjectReference Include="..\USCISFormTracker.Data\USCISFormTracker.Data.csproj" />
   </ItemGroup>
 </Project>
