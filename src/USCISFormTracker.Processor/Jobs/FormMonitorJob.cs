@@ -41,10 +41,10 @@ public class FormMonitorJob : IJob
             // Apply pending migrations
             await _dbContext.Database.MigrateAsync();
 
-            // Execute monitoring (orchestration handled by Core)
+            // Run the monitoring workflow
             var summary = await _monitoringService.MonitorFormsAsync();
 
-            // Publish results only when something actually changed; no email on quiet days
+            // Publish a summary only when something changed
             if (summary.HasChanges)
             {
                 await PublishAggregateSummaryAsync(summary);

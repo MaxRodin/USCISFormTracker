@@ -73,7 +73,7 @@ public class PdfTextAnalysisTests
         using var stream = new MemoryStream(pdfBytes);
         var actualText = pdfReader.GetPdfText(stream);
 
-        // What we SHOULD get (ideal output based on user's description)
+        // Ideal output for comparison
         var idealText = @"This line is static.
 This line will change.
 We are going to delete this line.

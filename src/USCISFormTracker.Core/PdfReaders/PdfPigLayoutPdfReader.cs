@@ -59,7 +59,6 @@ public class PdfPigLayoutPdfReader : IPdfReader
         }
 
         // Step 2: Filter out footers based on Y position
-        // Keep existing footer filtering logic for consistency
         var contentWords = allWords
             .Where(w => w.BoundingBox.Bottom > _footerMarginPoints)
             .ToList();

@@ -24,7 +24,7 @@ builder.Services.AddSingleton<IEmailSender>(sp =>
         ?? throw new InvalidOperationException("Mailgun:FromEmail not configured");
     var fromName = configuration["Mailgun:FromName"]
         ?? throw new InvalidOperationException("Mailgun:FromName not configured");
-    var mailingListAddress = configuration["Mailgun:MailingListAddress"]; // Optional
+    var mailingListAddress = configuration["Mailgun:MailingListAddress"];
 
     return new MailgunEmailSender(apiKey, domain, fromEmail, fromName, mailingListAddress);
 });
@@ -32,7 +32,7 @@ builder.Services.AddSingleton<IEmailSender>(sp =>
 // Configure MassTransit with RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
-    // Register consumer (only RunSummaryConsumer - we always send aggregate summaries)
+    // Register consumers
     x.AddConsumer<RunSummaryConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>

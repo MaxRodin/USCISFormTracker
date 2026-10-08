@@ -18,10 +18,10 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(5000);
 });
 
-// Add Core services (pure business logic)
+// Core services
 builder.Services.AddFormTrackerCoreServices(builder.Configuration);
 
-// Add Processor services (database, repositories, orchestration)
+// Processor services
 builder.Services.AddProcessorServices(builder.Configuration);
 
 // Configure Quartz
@@ -37,7 +37,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
         .WithIdentity("FormMonitorJob-trigger")
-        // Run every day at 2:00 AM
+        // Schedule from configuration, defaulting to every day at 2:00 AM
         .WithCronSchedule(builder.Configuration["Quartz:CronSchedule"] ?? "0 0 2 * * ?")
         .WithDescription("Runs form monitoring daily at 2:00 AM"));
 });

@@ -10,6 +10,6 @@ public class PdfFormChange
     public required string NewHash { get; set; }
     public string? OldPdfPath { get; set; } // Path to previous PDF version
     public string? NewPdfPath { get; set; } // Path to new PDF version
-    public required string DiffLinesSerialized { get; set; } // JSON serialized DiffLines
+    public required string DiffLinesSerialized { get; set; } // Serialized DiffLines
     public required DateTime DetectedChangeTime { get; set; }
 }

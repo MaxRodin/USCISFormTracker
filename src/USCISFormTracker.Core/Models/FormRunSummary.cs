@@ -1,7 +1,7 @@
 namespace USCISFormTracker.Core.Models;
 
 /// <summary>
-/// Summary of a complete monitoring run - returned by Core after comparison
+/// Summary of a complete monitoring run
 /// </summary>
 public class FormRunSummary
 {

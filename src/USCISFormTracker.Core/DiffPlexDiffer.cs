@@ -6,7 +6,7 @@ using USCISFormTracker.Core.Models;
 namespace USCISFormTracker.Core;
 
 /// <summary>
-/// Diff implementation using DiffPlex library for more sophisticated diff algorithms
+/// Diff implementation backed by the DiffPlex library
 /// </summary>
 public class DiffPlexDiffer : IDiffer
 {

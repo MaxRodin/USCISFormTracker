@@ -1,7 +1,7 @@
 namespace USCISFormTracker.Dto;
 
 /// <summary>
-/// Message published for aggregate summary (typically on first run)
+/// Aggregate summary of a single monitoring run
 /// </summary>
 public class RunSummaryMessage
 {

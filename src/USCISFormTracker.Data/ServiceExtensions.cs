@@ -27,7 +27,7 @@ public static class ServiceExtensions
         services.AddDbContext<FormTrackerDbContext>(options =>
             options.UseNpgsql(connectionString));
 
-        // Register Repository (implements IFormRepository from Core)
+        // Register repository
         services.AddScoped<IFormRepository, FormRepository>();
 
         return services;

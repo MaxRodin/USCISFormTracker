@@ -13,7 +13,7 @@ public static class ServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Data layer (DbContext + Repository)
+        // Data layer
         services.AddDataServices(configuration);
 
         return services;

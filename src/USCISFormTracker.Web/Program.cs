@@ -13,9 +13,8 @@ Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel. HTTPS is enabled only when a certificate is present
-// (e.g., a Cloudflare Origin Certificate mounted at /app/certs in Docker),
-// so the app runs HTTP-only out of the box.
+// Configure Kestrel. HTTPS is enabled only when a certificate file exists
+// at the configured path; otherwise the app serves HTTP only.
 var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var configuredPort) ? configuredPort : 80;
 var httpsCertPath = builder.Configuration["HTTPS_CERT_PATH"] ?? "/app/certs/origin.pfx";
 var useHttps = File.Exists(httpsCertPath);
@@ -37,7 +36,7 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Data layer (DbContext + Repository)
+// Data layer
 builder.Services.AddDataServices(builder.Configuration);
 
 // Formatting services
@@ -78,7 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Redirect HTTP to HTTPS (Full mode with origin certificate)
+// Redirect HTTP to HTTPS when a certificate is in use
 if (useHttps)
 {
     app.UseHttpsRedirection();

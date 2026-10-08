@@ -19,7 +19,7 @@ public static class ServiceExtensions
 
         // Core services
         services.AddScoped<IHasher, Sha256Hasher>();
-        services.AddScoped<IPdfReader, PdfPigLayoutPdfReader>(); // Using PdfPig's RecursiveXYCut algorithm
+        services.AddScoped<IPdfReader, PdfPigLayoutPdfReader>();
         services.AddScoped<IDiffer, DiffPlexDiffer>();
 
         // PDF File Manager
@@ -40,10 +40,10 @@ public static class ServiceExtensions
             return new UscisWebPdfGetter(httpClient, formsPageUrl, logger);
         });
 
-        // Form comparison service (pure logic)
+        // Form comparison service
         services.AddScoped<IFormComparisonService, FormComparisonService>();
 
-        // Form monitoring service (orchestration)
+        // Form monitoring service
         services.AddScoped<IFormMonitoringService, FormMonitoringService>();
 
         return services;

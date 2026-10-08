@@ -47,8 +47,8 @@ public class ImprovedPdfReaderTests
 
         // Assert
         Assert.NotEmpty(newText);
-        Assert.Contains("OriginalHeader", newText); // Headers are kept now
-        Assert.DoesNotContain("10/11/2025", newText); // Footers still removed
+        Assert.Contains("OriginalHeader", newText); // Headers are kept
+        Assert.DoesNotContain("10/11/2025", newText); // Footers are removed
         Assert.Contains("This line is static.", newText);
     }
 
@@ -76,8 +76,8 @@ public class ImprovedPdfReaderTests
 
         // Assert
         Assert.NotEmpty(newText);
-        Assert.Contains("ModifiedHeader", newText); // Headers are kept now
-        Assert.DoesNotContain("11/30/2025", newText); // Footers still removed
+        Assert.Contains("ModifiedHeader", newText); // Headers are kept
+        Assert.DoesNotContain("11/30/2025", newText); // Footers are removed
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class ImprovedPdfReaderTests
         Assert.True(diffLines.AddedLines.Count + diffLines.DeletedLines.Count > 0,
             "Should detect differences");
 
-        // Headers are now included in the output, so they will appear in diffs
+        // Headers are included in the output, so they appear in diffs
         Assert.Contains(diffLines.AddedLines, line => line.Contains("ModifiedHeader"));
         Assert.Contains(diffLines.DeletedLines, line => line.Contains("OriginalHeader"));
     }

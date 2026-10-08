@@ -10,7 +10,7 @@ public interface IFormComparisonService
     /// <summary>
     /// Compares current forms on USCIS website against existing records
     /// </summary>
-    /// <param name="existingRecords">Current form records from database</param>
+    /// <param name="existingRecords">Previously recorded forms to compare against</param>
     /// <returns>Summary of added, changed, and deleted forms</returns>
     Task<FormRunSummary> CompareFormsAsync(IEnumerable<PdfFormRecord> existingRecords);
 }

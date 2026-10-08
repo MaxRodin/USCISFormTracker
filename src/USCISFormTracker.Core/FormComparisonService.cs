@@ -73,7 +73,7 @@ public class FormComparisonService : IFormComparisonService
             }
         }
 
-        // Find deleted forms (in database but not on website) using helper
+        // Find previously known forms that are no longer on the website
         var deletedForms = FormComparisonHelper.GetDeletedForms(existingRecords, pdfLinks);
         foreach (var deletedForm in deletedForms)
         {
